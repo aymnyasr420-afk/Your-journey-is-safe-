@@ -462,7 +462,7 @@ $('#s-submit').onclick=async()=>{
 };
 
 /* ============ الكاميرا + فحص البطاقة + بصمة الوجه ============ */
-const MIN_ID_MATCH=12;
+const MIN_ID_MATCH=10;
 const YAW_T=0.14, PITCH_T=0.06, HOLD=6;
 const BACK_WORDS=['الحالة','الاجتماعية','المهنة','الديانة','الزوج','تاريخ','الإصدار','الاصدار','انتهاء','الانتهاء','مسلم','مسيحي','أعزب','متزوج','وزارة','الداخلية','أرمل','مطلق'];
 const POSE_LBL={center:'الأمام',right:'اليمين',left:'الشمال',up:'فوق',down:'تحت'};
@@ -513,7 +513,7 @@ async function snapID(){
 $('#id-snap').onclick=snapID;
 
 /* ===== كشف البطاقة تلقائي: الإطار يبقى أخضر ويتصور لوحده ===== */
-const ID_EDGE=2.0, ID_SHARP=35, ID_HOLD=6;   // لو بيتصور بسهولة/صعوبة زيادة عدّل الأرقام دي
+const ID_EDGE=1.5, ID_SHARP=20, ID_HOLD=5;   // لو بيتصور بسهولة/صعوبة زيادة عدّل الأرقام دي
 let idRun=false, idOk=0, idLast=0;
 const dc=document.createElement('canvas'); dc.width=240; dc.height=151;
 const dx=dc.getContext('2d',{willReadFrequently:true});
@@ -532,7 +532,8 @@ function idLooksGood(){
   const mx=Math.round(W*.0833), my=Math.round(H*.0833), B=5, x0=Math.floor(W*.2), x1=Math.floor(W*.8), y0=Math.floor(H*.2), y1=Math.floor(H*.8);
   const rowPeak=yc=>{ let b=0; for(let y=yc-B;y<=yc+B;y++){ let a=0; for(let x=x0;x<x1;x++) a+=gy[y*W+x]; a/=(x1-x0); if(a>b) b=a; } return b; };
   const colPeak=xc=>{ let b=0; for(let x=xc-B;x<=xc+B;x++){ let a=0; for(let y=y0;y<y1;y++) a+=gx[y*W+x]; a/=(y1-y0); if(a>b) b=a; } return b; };
-  return Math.min(rowPeak(my),rowPeak(H-1-my),colPeak(mx),colPeak(W-1-mx))/(gm+2)>=ID_EDGE;   // حواف البطاقة الأربعة على الإطار
+  const sides=[rowPeak(my),rowPeak(H-1-my),colPeak(mx),colPeak(W-1-mx)].filter(v=>v/(gm+2)>=ID_EDGE).length;
+  return sides>=3;   // 3 من 4 حواف للبطاقة على الإطار
 }
 function idLoop(t){
   if(!idRun) return;
@@ -545,10 +546,24 @@ function idLoop(t){
   requestAnimationFrame(idLoop);
 }
 let ocrW=null;
-async function ocr(c){
+async function ocr(c,digits){
   if(!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
   if(!ocrW) ocrW=await Tesseract.createWorker('ara');
+  await ocrW.setParameters(digits
+    ?{tessedit_char_whitelist:'٠١٢٣٤٥٦٧٨٩0123456789',tessedit_pageseg_mode:'6'}
+    :{tessedit_char_whitelist:'',tessedit_pageseg_mode:'3'});
   const {data}=await ocrW.recognize(c); return data.text||'';
+}
+/* تجهيز الصورة للقراءة: قص شريط، تكبير، رمادي، رفع التباين */
+function prep(c,y0,h){
+  const w=c.width, sy=Math.round(c.height*y0), sh=Math.round(c.height*h);
+  const o=document.createElement('canvas'); o.width=Math.min(1800,w*2); o.height=Math.round(o.width*sh/w);
+  const x=o.getContext('2d'); x.drawImage(c,0,sy,w,sh,0,0,o.width,o.height);
+  const im=x.getImageData(0,0,o.width,o.height), d=im.data; let lo=255,hi=0;
+  for(let i=0;i<d.length;i+=4){ const g=d[i]*.3+d[i+1]*.59+d[i+2]*.11; d[i]=g; if(g<lo) lo=g; if(g>hi) hi=g; }
+  const k=255/Math.max(1,hi-lo);
+  for(let i=0;i<d.length;i+=4){ const g=Math.max(0,Math.min(255,(d[i]-lo)*k)); d[i]=d[i+1]=d[i+2]=g; }
+  x.putImageData(im,0,0); return o;
 }
 const latin=t=>t.replace(/[\u0660-\u0669]/g,d=>d.charCodeAt(0)-1632).replace(/[\u06F0-\u06F9]/g,d=>d.charCodeAt(0)-1776);
 function bestMatch(text,nid){
@@ -565,13 +580,15 @@ function tile(key,blob){
 async function verifyID(c,key){
   busy(true,'جاري فحص البطاقة... ممكن ياخد ثواني');
   try{
-    const text=await ocr(c);
     if(key==='front'){
-      const nid=$('#s-nid').value, sc=bestMatch(text,nid);
+      const nid=$('#s-nid').value; let sc=0;
+      for(const [y0,h] of [[.5,.5],[0,1],[.4,.4]]){
+        const t=await ocr(prep(c,y0,h),true); sc=Math.max(sc,bestMatch(t,nid)); if(sc>=MIN_ID_MATCH) break;
+      }
       if(sc<MIN_ID_MATCH) throw new Error('الرقم القومي في الصورة مش واضح أو مش مطابق للرقم اللي كتبته. صوّر الوجه الأمامي للبطاقة الأصلية كاملة، في إضاءة كويسة وبدون انعكاس.');
       verifiedNid=nid; idCheck.front={match:sc};
     }else{
-      const t=text.replace(/\s+/g,' '), hits=BACK_WORDS.filter(w=>t.includes(w)).length;
+      const text=await ocr(c,false), t=text.replace(/\s+/g,' '), hits=BACK_WORDS.filter(w=>t.includes(w)).length;
       if(hits<1) throw new Error('الصورة دي مش شبه الوجه الخلفي لبطاقة الرقم القومي. صوّر الخلفي كامل وواضح.');
       idCheck.back={hits};
     }
