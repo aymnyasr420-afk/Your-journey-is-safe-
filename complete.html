@@ -15,7 +15,7 @@ body{font-family:"Cairo",system-ui,sans-serif;color:var(--ink);background:#fff;d
 .hidden{display:none!important}
 
 /* الهيدر */
-.hd{background:var(--navy);border-radius:0 0 26px 26px;padding:calc(14px + env(safe-area-inset-top)) 18px 18px}
+.hd{position:sticky;top:0;z-index:40;background:var(--navy);border-radius:0 0 26px 26px;padding:calc(14px + env(safe-area-inset-top)) 18px 18px}
 .hd-in{display:flex;align-items:center;gap:12px;max-width:640px;margin:0 auto}
 .hb{width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
 .hb svg{width:20px;height:20px}
@@ -42,8 +42,15 @@ body{font-family:"Cairo",system-ui,sans-serif;color:var(--ink);background:#fff;d
 .intro{display:flex;gap:14px;align-items:center;margin-bottom:20px}
 .intro .ib2{width:52px;height:52px;border-radius:16px;background:#e8f0ff;color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
 .intro .ib2 svg{width:26px;height:26px}
-.intro h2{font-size:20px;font-weight:800;color:var(--navy);line-height:1.4}
-.intro p{font-size:13.5px;color:var(--mut);margin-top:2px}
+.intro h2{flex:1;font-size:20px;font-weight:800;color:var(--navy);line-height:1.4}
+.help{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--blue);background:#fff;color:var(--blue);font:inherit;font-size:18px;font-weight:800;line-height:1;cursor:pointer;flex:none}
+.hm{position:fixed;inset:0;z-index:150;background:rgba(8,20,50,.55);display:none;align-items:center;justify-content:center;padding:20px}
+.hm.show{display:flex}
+.hbox{background:#fff;border-radius:20px;width:100%;max-width:420px;padding:22px 20px 18px}
+.hbox h3{font-size:18px;font-weight:800;color:var(--navy);margin-bottom:12px}
+.hbox ul{list-style:none;margin-bottom:16px}
+.hbox li{position:relative;padding:0 18px 0 0;margin-bottom:10px;font-size:14.5px;line-height:1.8;color:var(--ink)}
+.hbox li::before{content:"";position:absolute;right:0;top:11px;width:8px;height:8px;border-radius:50%;background:var(--blue)}
 
 .prov{display:flex;align-items:center;gap:10px;background:#f3f7ff;border:1.5px solid #d4e3ff;border-radius:16px;padding:12px 14px;margin-bottom:18px}
 .prov .av{width:52px;height:52px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;overflow:hidden;flex:none}
@@ -136,7 +143,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
 <header class="hd">
   <div class="hd-in">
     <img src="logo.png" alt="RideNow">
-    <div class="hd-t"><b id="s-title">إكمال بيانات حسابك</b><small id="s-sub"></small></div>
+    <div class="hd-t"><b id="s-title">إكمال بيانات حسابك</b></div>
     <button type="button" class="hb" id="s-back" aria-label="رجوع"></button>
   </div>
   <div class="steps" id="steps"></div>
@@ -178,14 +185,13 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
     <div class="step hidden" data-s="2">
       <label class="lb">ادخل رقمك القومي</label>
       <div class="field"><span class="ic" data-i="id"></span><input id="s-nid" inputmode="numeric" maxlength="14" placeholder="14 رقم"></div>
-      <div class="hint" id="nid-hint">يجب أن يكون الرقم القومي صحيحًا ومطابقًا للنوع</div>
+      <div class="hint" id="nid-hint"></div>
       <div class="idbox">
         <div class="t"><span data-i="card" style="display:flex"></span>صورة الهوية</div>
         <div class="pics">
           <button type="button" class="pic" id="pic-front"><span data-i="cam" style="display:flex"></span><b>الوجه الأمامي</b></button>
           <button type="button" class="pic" id="pic-back"><span data-i="cam" style="display:flex"></span><b>الوجه الخلفي</b></button>
         </div>
-        <div class="hint" style="margin:8px 0 0">الصورة بتتاخد من الكاميرا مباشرة، ولازم البطاقة الأصلية تبان كاملة وواضحة</div>
       </div>
       <label class="lb">كلمة المرور</label>
       <div class="field"><span class="ic" data-i="lock"></span><input id="s-pass" type="password" autocomplete="new-password" placeholder="8 أحرف على الأقل (حروف وأرقام)"><button type="button" class="eye" data-eye="s-pass" aria-label="إظهار كلمة المرور"></button></div>
@@ -208,7 +214,6 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
     <div class="step hidden" data-s="4">
       <div class="idbox">
         <div class="t"><span data-i="user" style="display:flex"></span>التحقق من الوجه</div>
-        <p class="hint" style="margin:0 0 8px">هنفتح الكاميرا ونصوّر وشك من 5 اتجاهات: الأمام واليمين والشمال وفوق وتحت.</p>
         <div class="poses" id="poses"></div>
         <button type="button" class="btn" id="face-start" style="height:42px;font-size:15px;margin-top:10px">ابدأ التحقق من الوجه</button>
       </div>
@@ -224,7 +229,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
       <div class="done-box">
         <div class="ok" data-i="check"></div>
         <h2>تم حفظ بياناتك</h2>
-        <p>جاري فتح صفحتك الرئيسية... وحسابك دلوقتي قيد مراجعة الهوية.</p>
+        <p>حسابك قيد مراجعة الهوية.</p>
         <button class="btn" id="to-login">فتح صفحتي الآن</button>
       </div>
     </div>
@@ -234,7 +239,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
 <div class="modal" id="id-modal">
   <div class="stage" id="id-stage"><video id="id-video" playsinline muted></video><div id="id-frame"></div>
     <div class="m-top" id="id-title">صوّر البطاقة</div>
-    <div class="m-note">ضع البطاقة الأصلية كلها داخل الإطار، في إضاءة كويسة وبدون انعكاس</div></div>
+    <div class="m-note">ضع البطاقة داخل الإطار</div></div>
   <div class="m-bot"><button type="button" class="m-cancel" id="id-cancel">إلغاء</button><button type="button" class="shutter" id="id-snap" aria-label="التقاط"></button><span class="m-cancel" style="visibility:hidden">إلغاء</span></div>
 </div>
 <div class="modal" id="face-modal">
@@ -243,6 +248,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
     <div class="m-note big" id="face-txt"></div><div class="dots" id="face-dots"></div></div>
   <div class="m-bot"><button type="button" class="m-cancel" id="face-cancel">إلغاء</button></div>
 </div>
+<div class="hm" id="hm"><div class="hbox"><h3 id="hm-t"></h3><ul id="hm-l"></ul><button type="button" class="btn" id="hm-x" style="width:100%">تمام</button></div></div>
 <div class="busy" id="busy"><div class="spin"></div><p id="busy-t">جاري الفحص...</p></div>
 
 <script>
@@ -320,27 +326,35 @@ function nameIssue(n){
 }
 function nameHint(){
   const h=$('#name-hint'), f=$('#name-f'), e=nameIssue($('#s-name').value);
-  h.className='hint '+(e?'bad':'good'); h.textContent=e||'الاسم تمام'; f.classList.toggle('bad',!!e);
+  h.className='hint '+(e?'bad':'good'); h.textContent=e||''; f.classList.toggle('bad',!!e);
 }
 $('#s-name').addEventListener('input',nameHint);
 
 /* ============ التنقل ============ */
 let step=1, files={front:null,back:null}, oauthUser=null;
 const LABELS=['البيانات','الهوية','العنوان','التحقق','اكتمل'];
-const INTRO={
-  1:['user','بياناتك الأساسية','راجع اسمك وبياناتك اللي جت من حسابك'],
-  2:['id','التحقق من الهوية','الرقم القومي وصور البطاقة وكلمة مرور تدخل بيها بعد كده'],
-  3:['pin','عنوانك','المحافظة والمدينة والعنوان بالتفصيل'],
-  4:['cam','التحقق من الوجه','صوّر وشك من 5 اتجاهات لتأكيد هويتك'],
-  5:['check','تمام','تم حفظ بياناتك']
+const INTRO={1:['user','بياناتك الأساسية'],2:['id','التحقق من الهوية'],3:['pin','عنوانك'],4:['cam','التحقق من الوجه'],5:['check','تمام']};
+const HELP={
+  1:['بياناتك الأساسية',['اكتب الاسم ثلاثي زي ما في البطاقة.','البريد ورقم الهاتف بيتاخدوا من حسابك لو متاحين، ولو الهاتف فاضي اكتبه.','اختار النوع ونوع الحساب (عميل أو سائق).']],
+  2:['التحقق من الهوية',['اكتب الرقم القومي الصحيح ويطابق النوع.','صوّر الوجه الأمامي والخلفي للبطاقة بالكاميرا، كاملة وواضحة.','اختار كلمة مرور 8 أحرف على الأقل فيها حروف وأرقام.']],
+  3:['عنوانك',['اختار المحافظة.','اكتب المدينة أو المنطقة.','اكتب العنوان بالتفصيل: الشارع ورقم المبنى.']],
+  4:['التحقق من الوجه',['اضغط ابدأ واسمح للكاميرا.','خلي وشك جوه الدايرة واتبع الأسهم لتحريك راسك.','لازم الـ 5 صور يكتملوا، وبعدها وافق على الشروط واضغط إنشاء الحساب.']],
+  5:['تمام',['تم حفظ بياناتك، وحسابك قيد مراجعة الهوية.']]
 };
+function openHelp(n){
+  $('#hm-t').textContent=HELP[n][0];
+  $('#hm-l').innerHTML=HELP[n][1].map(t=>`<li>${t}</li>`).join('');
+  $('#hm').classList.add('show');
+}
+$('#hm-x').onclick=()=>$('#hm').classList.remove('show');
+$('#hm').onclick=e=>{ if(e.target.id==='hm') $('#hm').classList.remove('show'); };
 const val=n=>document.querySelector(`input[name=${n}]:checked`).value;
 function goStep(n){
   step=n; msg($('#s-msg'),'');
   $$('.step').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==n));
-  $('#s-sub').textContent='الخطوة '+n+' من 5';
   $('#steps').innerHTML=LABELS.map((l,i)=>`<div class="st ${i+1===n?'on':''} ${i+1<n?'done':''}"><i>${i+1<n?ICONS.check.replace('<svg','<svg width="15" height="15"'):i+1}</i>${l}</div>`).join('');
-  const it=INTRO[n]; $('#intro').innerHTML=`<div class="ib2">${ICONS[it[0]]}</div><div><h2>${it[1]}</h2><p>${it[2]}</p></div>`;
+  const it=INTRO[n]; $('#intro').innerHTML=`<div class="ib2">${ICONS[it[0]]}</div><h2>${it[1]}</h2><button type="button" class="help" aria-label="مساعدة">?</button>`;
+  $('#intro .help').onclick=()=>openHelp(n);
   $('#s-back').style.visibility=(n===1||n===5)?'hidden':'visible';
   window.scrollTo(0,0);
 }
@@ -352,7 +366,7 @@ $$('[data-prev]').forEach(b=>b.onclick=()=>goStep(step-1));
 
 function nidHint(){
   const v=$('#s-nid').value, h=$('#nid-hint');
-  if(v.length<14){ h.className='hint'; h.textContent=v.length?`${v.length} / 14`:'يجب أن يكون الرقم القومي صحيحًا ومطابقًا للنوع'; return; }
+  if(v.length<14){ h.className='hint'; h.textContent=v.length?`${v.length} / 14`:''; return; }
   const e=checkNID(v,val('gender')); h.className='hint '+(e?'bad':'good'); h.textContent=e||'الرقم القومي صحيح';
 }
 $('#s-nid').addEventListener('input',nidHint);
