@@ -2,155 +2,106 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="theme-color" content="#0b2150">
+<meta name="theme-color" content="#ffffff">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>إكمال الحساب | RideNow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-:root{
-  --blue:#1a6fe0; --blue-d:#1257b8; --navy:#0f2a5c; --ink:#16213a; --mut:#6b7690;
-  --line:#d9e0ec; --field:#f3f6fb; --ok:#1a8f4c; --err:#d63838;
-  --bg-image:url("https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/982a04a8-1151-4c56-89a3-d334398558a3.jpg"); /* غيّر صورة الخلفية هنا */
-}
+:root{--blue:#1a6fe0;--blue-d:#1257b8;--navy:#0f2a5c;--ink:#16213a;--mut:#6b7690;--line:#d9e0ec;--field:#f3f6fb;--ok:#1a8f4c;--err:#d63838}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{font-family:"Cairo",system-ui,sans-serif;color:var(--ink);background:var(--navy);direction:rtl}
+body{font-family:"Cairo",system-ui,sans-serif;color:var(--ink);background:#fff;direction:rtl}
+.hidden{display:none!important}
 
-/* الخلفية ثابتة ما بتتحركش */
-.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:linear-gradient(180deg,#27457f 0%,#14305f 55%,#0b1d40 100%)}
-/* طبقة تحت: نفس الصورة مغطية الشاشة ومغبشة عشان تملّا الأطراف */
-.bg::before{content:"";position:absolute;inset:-30px;background:var(--bg-image) center/cover no-repeat;filter:blur(24px)}
-/* الفيديو فوق الصورة: لو الفيديو ما اشتغلش الصورة المغبشة تفضل ظاهرة */
-.bg video{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-/* طبقة تحت: نفس الفيديو مغطي الشاشة ومغبش جامد عشان يملّا الأطراف */
-.bg video.fill{object-fit:cover;filter:blur(26px);transform:scale(1.25)}
-/* طبقة فوق: الفيديو كامل بدون أي قص */
-.bg video.main{object-fit:contain;object-position:center top;filter:blur(1px)}
-.bg::after{content:"";position:absolute;inset:0;background:rgba(15,42,92,.28)}
-
-.screen{min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-end}
-.brand{display:flex;flex-direction:column;align-items:center;padding:clamp(12px,3dvh,28px) 16px clamp(12px,2.5dvh,22px);color:#fff;text-align:center}
-.brand img{width:clamp(80px,15dvh,140px);height:clamp(80px,15dvh,140px);object-fit:contain;background:none;border:0}
-.brand h1{font-size:clamp(26px,4dvh,34px);font-weight:800;margin-top:4px;line-height:1.3;letter-spacing:.5px}
-.brand p{font-size:17px;font-weight:600;opacity:.95}
-.brand .side-text{display:none}
-
-/* الصندوق لازق من تحت ومن الجنبين (موبايل) */
-.card{background:#fff;width:100%;border-radius:28px 28px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));
-  box-shadow:0 -10px 30px rgba(8,20,50,.25)}
-.card h2{font-size:21px;font-weight:800;text-align:center;margin-bottom:16px}
-
-.tabs{display:flex;background:var(--field);border-radius:12px;padding:4px;margin-bottom:16px}
-.tabs button{flex:1;border:0;background:transparent;font:inherit;font-weight:700;padding:10px;border-radius:9px;color:var(--mut);cursor:pointer}
-.tabs button.on{background:var(--blue);color:#fff}
-
-.field{position:relative;margin-bottom:12px}
-.field input,.field select{width:100%;height:50px;border:1.5px solid var(--line);border-radius:12px;background:var(--field);
-  font:inherit;font-size:15px;color:var(--ink);padding:0 44px;text-align:right;outline:none;transition:border-color .15s}
-.field input:focus,.field select:focus{border-color:var(--blue);background:#fff}
-.field input::placeholder{color:#8a94ab}
-.field .ic{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:var(--mut);display:flex;pointer-events:none}
-.field .eye{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;background:none;color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer}
-.field .eye svg,.field .ic svg{width:20px;height:20px}
-label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
-.hint{font-size:12.5px;color:var(--mut);margin:-4px 0 12px;min-height:18px}
-.hint.bad{color:var(--err)} .hint.good{color:var(--ok)}
-
-.btn{width:100%;height:50px;border:0;border-radius:12px;background:var(--blue);color:#fff;font:inherit;font-size:17px;font-weight:700;cursor:pointer;margin-top:6px}
-.btn:hover{background:var(--blue-d)} .btn:disabled{opacity:.6;cursor:wait}
-.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:600;margin-top:10px}
-.btn.ghost:hover{background:var(--field)}
-.btn.ghost svg{width:22px;height:22px}
-.link{background:none;border:0;font:inherit;color:var(--blue);font-weight:700;cursor:pointer}
-.foot{text-align:center;font-size:14px;color:var(--mut);margin-top:16px}
-.nav{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
-.nav .btn,.nav .bk2{width:auto;height:42px;min-width:96px;padding:0 22px;margin:0;font-size:15px;border-radius:11px}
-.nav .bk2{background:#fff;border:1.5px solid var(--line);color:var(--mut);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
-.nav .bk2:hover{background:var(--field)}
-.nav .sp2{min-width:96px}
-
-.msg{display:none;padding:10px 12px;border-radius:10px;font-size:14px;margin-bottom:12px;background:#fdeaea;color:var(--err);font-weight:600}
-.msg.show{display:block} .msg.okm{background:#e6f6ec;color:var(--ok)}
-
-/* هيدر الخطوات */
-.top{background:var(--navy);margin:-22px -20px 16px;padding:14px 16px 12px;border-radius:28px 28px 0 0;color:#fff}
-.top .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.top .row b{font-size:18px;flex:1;text-align:center}
-.top .bk{width:32px;height:32px;border:0;background:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.top .bk svg{width:22px;height:22px}
-.top .sp{width:32px}
-.steps{display:flex;justify-content:space-between;position:relative}
-.steps::before{content:"";position:absolute;top:13px;right:10%;left:10%;height:2px;background:#2d4a85;z-index:0}
-.st{flex:1;text-align:center;position:relative;font-size:11px;color:#b9c6e4}
+/* الهيدر */
+.hd{background:var(--navy);border-radius:0 0 26px 26px;padding:calc(14px + env(safe-area-inset-top)) 18px 18px}
+.hd-in{display:flex;align-items:center;gap:12px;max-width:640px;margin:0 auto}
+.hb{width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.hb svg{width:20px;height:20px}
+.hd-t{flex:1;min-width:0}
+.hd-t b{display:block;font-size:18px;font-weight:800;color:#fff;line-height:1.4}
+.hd-t small{color:#b9c6e4;font-size:13px}
+.hd-in img{width:44px;height:44px;object-fit:contain;flex:none;background:#fff;border-radius:12px;padding:4px}
+.steps{display:flex;justify-content:space-between;position:relative;max-width:640px;margin:16px auto 0}
+.steps::before{content:"";position:absolute;top:13px;right:10%;left:10%;height:2px;background:#2d4a85}
+.st{flex:1;text-align:center;position:relative;font-size:11.5px;color:#b9c6e4}
 .st i{position:relative;z-index:1;display:flex;width:27px;height:27px;border-radius:50%;margin:0 auto 4px;background:#2d4a85;color:#fff;align-items:center;justify-content:center;font-style:normal;font-weight:700;font-size:13px}
 .st.on{color:#fff;font-weight:700} .st.on i{background:var(--blue);box-shadow:0 0 0 4px var(--navy),0 0 0 6px var(--blue)}
 .st.done{color:#fff} .st.done i{background:var(--ok)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.seg label{cursor:pointer;position:relative}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg .c{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border:1.5px solid var(--line);border-radius:14px;background:#fff;font-weight:700;color:var(--mut);transition:.15s}
+.seg .c svg{width:28px;height:28px}
+.seg input:checked+.c{border-color:var(--blue);background:#eef4ff;color:var(--blue);box-shadow:0 0 0 3px #1a6fe022}
+.seg input:focus-visible+.c{outline:2px solid var(--blue)}
 
+/* المحتوى */
+.body{width:100%;max-width:640px;margin:0 auto;padding:22px 18px 120px}
+.intro{display:flex;gap:14px;align-items:center;margin-bottom:20px}
+.intro .ib2{width:52px;height:52px;border-radius:16px;background:#e8f0ff;color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
+.intro .ib2 svg{width:26px;height:26px}
+.intro h2{font-size:20px;font-weight:800;color:var(--navy);line-height:1.4}
+.intro p{font-size:13.5px;color:var(--mut);margin-top:2px}
+
+.prov{display:flex;align-items:center;gap:10px;background:#f3f7ff;border:1.5px solid #d4e3ff;border-radius:16px;padding:12px 14px;margin-bottom:18px}
+.prov .av{width:52px;height:52px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;overflow:hidden;flex:none}
+.prov .av img{width:100%;height:100%;object-fit:cover}
+.prov .pi{flex:1;min-width:0;line-height:1.45}
+.prov .pi b{display:block;font-size:15.5px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prov .pi small{display:block;color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext}
+.link{background:none;border:0;font:inherit;color:var(--err);font-weight:700;font-size:13px;cursor:pointer;flex:none}
+
+label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
+.field{position:relative;margin-bottom:12px}
+.field input,.field select{width:100%;height:52px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:15px;color:var(--ink);padding:0 44px;text-align:right;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(--blue)}
+.field input::placeholder{color:#8a94ab}
+.field input[readonly]{background:var(--field);color:var(--mut);cursor:not-allowed}
+.field.bad input{border-color:var(--err);background:#fff6f6}
+.field .ic{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:var(--mut);display:flex;pointer-events:none}
+.field .eye{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;background:none;color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.field .eye svg,.field .ic svg{width:20px;height:20px}
+.hint{font-size:12.5px;color:var(--mut);margin:-4px 0 12px;min-height:18px}
+.hint.bad{color:var(--err)} .hint.good{color:var(--ok)}
 .radios{display:flex;gap:18px;margin-bottom:12px}
 .radios label{display:flex;align-items:center;gap:7px;font-weight:600;cursor:pointer}
 .radios input{accent-color:var(--blue);width:18px;height:18px}
 
-.idbox{border:1.5px dashed var(--line);border-radius:14px;background:var(--field);padding:10px;margin-bottom:12px}
+.msg{display:none;padding:10px 12px;border-radius:10px;font-size:14px;margin-bottom:14px;background:#fdeaea;color:var(--err);font-weight:600}
+.msg.show{display:block}
+
+.idbox{border:1.5px dashed #b9c8e6;border-radius:14px;background:#fff;padding:12px;margin-bottom:14px}
 .idbox .t{font-size:13.5px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .idbox .t svg{width:18px;height:18px;color:var(--blue)}
 .pics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.pic{height:96px;border-radius:10px;background:#fff;border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mut);font-size:12.5px;font-weight:600;cursor:pointer;overflow:hidden;position:relative}
+.pic{height:110px;border-radius:10px;background:var(--field);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mut);font:inherit;font-weight:600;cursor:pointer;overflow:hidden;position:relative}
+.pic b{font-weight:600;font-size:12.5px}
 .pic svg{width:26px;height:26px;color:var(--blue)}
 .pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.pic input{display:none}
-
-.prov{display:flex;align-items:center;gap:10px;background:#eef4ff;border:1.5px solid #cddfff;border-radius:14px;padding:10px 12px;margin-bottom:12px}
-.prov .av{width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;overflow:hidden;flex:none}
-.prov .av img{width:100%;height:100%;object-fit:cover}
-.prov .pi{flex:1;min-width:0;line-height:1.45}
-.prov .pi b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.prov .pi small{display:block;color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext}
-.prov .link{font-size:13px;color:var(--err);flex:none}
-.oa .top{background:linear-gradient(135deg,#0f2a5c,#1a4fa0)}
-.field.bad input{border-color:var(--err);background:#fff6f6}
-.done-box{text-align:center;padding:10px 0}
-.done-box .ok{width:78px;height:78px;border-radius:50%;background:#e6f6ec;color:var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
-.done-box .ok svg{width:42px;height:42px}
-.hidden{display:none!important}
-/* شاشات قصيرة: تصغير بسيط عشان كل المحتوى يبان من غير سكرول */
-@media (max-height:800px){
-  .card{padding-top:16px;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
-  .top{margin-top:-16px;padding:10px 16px 8px;margin-bottom:12px}
-  .top .row{margin-bottom:8px}
-  .card h2{margin-bottom:10px}
-  .tabs{margin-bottom:12px}
-  .field{margin-bottom:9px}
-  .field input,.field select{height:44px}
-  .btn{height:46px}
-  .btn.ghost{margin-top:8px}
-  .foot{margin-top:10px}
-  label.lb{margin:2px 0 4px}
-  .radios{margin-bottom:8px}
-  .hint{min-height:16px;margin-bottom:8px}
-  .idbox{padding:8px;margin-bottom:8px}
-  .pic{height:76px}
-  .nav{margin-top:8px}
-}
-/* في صفحة إنشاء الحساب اللوجو بيصغر شوية عشان المساحة */
-@media (max-width:1023px){
-  .screen.su .brand{padding:12px 16px 12px}
-  .screen.su .brand img{width:clamp(64px,10dvh,96px);height:clamp(64px,10dvh,96px)}
-  .screen.su .brand h1{font-size:clamp(22px,3dvh,28px);margin-top:2px}
-  .screen.su .brand p{font-size:14px}
-}
-
-.pic{font:inherit}
-.pic b{font-weight:600;font-size:12.5px}
 .pic.done{border-color:var(--ok)}
 .pic .ck{position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:flex;align-items:center;justify-content:center}
 .pic .ck svg{width:14px;height:14px;color:#fff}
 .poses{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .pz{text-align:center;font-size:11.5px;font-weight:600;color:var(--mut)}
-.pz .pi{aspect-ratio:1;border-radius:10px;background:#fff;border:1.5px solid var(--line);overflow:hidden;margin-bottom:3px}
+.pz .pi{aspect-ratio:1;border-radius:10px;background:var(--field);border:1.5px solid var(--line);overflow:hidden;margin-bottom:3px}
 .pz .pi img{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 .pz.ok .pi{border-color:var(--ok)} .pz.ok{color:var(--ok)}
+
+.btn{width:100%;height:50px;border:0;border-radius:14px;background:var(--blue);color:#fff;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
+.btn:hover{background:var(--blue-d)} .btn:disabled{opacity:.6;cursor:wait}
+.nav{position:fixed;right:0;left:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);padding:12px max(18px,calc((100vw - 640px)/2)) calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:space-between}
+.nav .btn{flex:none;width:auto;min-width:130px;padding:0 30px}
+.nav .bk2{height:50px;min-width:130px;border-radius:14px;background:#fff;border:1.5px solid var(--line);color:var(--mut);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.nav .sp2{display:block;min-width:130px;visibility:hidden}
+.done-box{text-align:center;padding:30px 0}
+.done-box .ok{width:78px;height:78px;border-radius:50%;background:#e6f6ec;color:var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.done-box .ok svg{width:42px;height:42px}
+.done-box h2{margin-bottom:6px;color:var(--navy)}
+.done-box p{color:var(--mut);font-size:14.5px;line-height:1.8;margin-bottom:14px}
+
+/* الكاميرا */
 .modal{position:fixed;inset:0;z-index:100;background:#000;display:none;flex-direction:column}
 .modal.show{display:flex}
 .stage{position:relative;flex:1;overflow:hidden}
@@ -179,161 +130,106 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
 .busy.show{display:flex}
 .spin{width:44px;height:44px;border-radius:50%;border:4px solid #ffffff44;border-top-color:#fff;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-
-/* تابلت: صندوق في النص بحواف كاملة */
-@media (min-width:640px){
-  .screen{justify-content:center;align-items:center;padding:24px}
-  .brand{padding:0 0 22px}
-  .brand img{width:170px;height:170px}
-  .card{max-width:540px;border-radius:28px;padding:28px 36px;box-shadow:0 20px 50px rgba(8,20,50,.35)}
-  .top{margin:-28px -36px 20px;padding:16px 24px 14px}
-  .pic{height:120px}
-}
-/* لاب توب: شاشة منقسمة، الصندوق على اليمين بطول الشاشة */
-@media (min-width:1024px){
-  .screen{flex-direction:row-reverse;justify-content:space-between;align-items:stretch;padding:0}
-  .card{max-width:520px;width:520px;min-height:100dvh;max-height:none;border-radius:36px 0 0 36px;padding:44px 48px;display:flex;flex-direction:column;justify-content:center;box-shadow:-14px 0 40px rgba(8,20,50,.3)}
-  .top{margin:-44px -48px 24px;padding:20px 32px 16px;border-radius:36px 0 0 0}
-  .brand{flex:1;justify-content:center;padding:40px}
-  .brand img{width:230px;height:230px}
-  .brand h1{font-size:54px;margin-top:14px}
-  .brand p{font-size:24px}
-  .brand .side-text{display:block;max-width:420px;margin-top:22px;font-size:16px;line-height:1.9;opacity:.92;font-weight:400}
-}
-
-/* ===== صفحة إكمال الحساب: صفحة كاملة بدون خلفية، تصميم مختلف عن إنشاء الحساب ===== */
-body{background:#eef3fb;color:var(--ink)}
-body:not(.ready) .pgw{visibility:hidden}
-.pgw{min-height:100dvh;display:flex;flex-direction:column}
-.hd{background:linear-gradient(160deg,#0b2150 0%,#123a7d 62%,#1a5fc0 100%);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 18px 20px;border-radius:0 0 28px 28px}
-.hd-in{display:flex;align-items:center;gap:12px;max-width:640px;margin:0 auto}
-.hb{width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
-.hb svg{width:22px;height:22px}
-.hd-t{flex:1;min-width:0}
-.hd-t b{display:block;font-size:19px;font-weight:800;line-height:1.4}
-.hd-t small{opacity:.85;font-size:13px}
-.hd-in img{width:44px;height:44px;object-fit:contain;flex:none}
-.pbar{max-width:640px;margin:16px auto 8px;height:6px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden}
-.pbar i{display:block;height:100%;width:20%;border-radius:99px;background:#fff;transition:width .35s}
-.plabels{max-width:640px;margin:0 auto;display:flex;justify-content:space-between;font-size:11px;color:#b9c6e4}
-.plabels span.on{color:#fff;font-weight:800}
-.body{flex:1;width:100%;max-width:640px;margin:0 auto;padding:18px 16px 112px;display:flex;flex-direction:column}
-.intro{display:flex;gap:12px;align-items:center;margin-bottom:14px}
-.intro .ib2{width:46px;height:46px;border-radius:14px;background:#dce9ff;color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
-.intro .ib2 svg{width:24px;height:24px}
-.intro h2{font-size:18px;font-weight:800;line-height:1.4}
-.intro p{font-size:13px;color:var(--mut);margin-top:1px}
-#v-signup .step{background:#fff;border-radius:20px;padding:18px 16px;box-shadow:0 6px 22px rgba(15,42,92,.08)}
-.step .nav{position:fixed;right:0;left:0;bottom:0;z-index:30;margin:0;background:#fff;box-shadow:0 -8px 24px rgba(15,42,92,.12);padding:12px max(16px,calc((100vw - 640px)/2)) calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:stretch}
-.step .nav .btn{flex:1;min-width:0;height:48px;font-size:16px;border-radius:14px;margin:0}
-.step .nav .bk2{height:48px;min-width:92px;border-radius:14px}
-.step .nav .sp2{display:none}
-.oa .prov{background:linear-gradient(135deg,#0f2a5c,#1a4fa0);border:0;color:#fff;padding:14px;border-radius:16px;margin-bottom:16px}
-.oa .prov .av{width:56px;height:56px;border:3px solid rgba(255,255,255,.35);font-size:22px}
-.oa .prov .pi b{font-size:16px}
-.oa .prov .pi small{color:#cfe0ff}
-.oa .prov .link{color:#ffd0d0}
 </style>
 </head>
 <body>
-<div class="pgw">
-  <header class="hd">
-    <div class="hd-in">
-      <button type="button" class="hb" id="s-back" aria-label="رجوع"></button>
-      <div class="hd-t"><b id="s-title">إكمال بيانات حسابك</b><small id="s-sub"></small></div>
-      <img src="logo.png" alt="RideNow">
+<header class="hd">
+  <div class="hd-in">
+    <button type="button" class="hb" id="s-back" aria-label="رجوع"></button>
+    <div class="hd-t"><b id="s-title">إكمال بيانات حسابك</b><small id="s-sub"></small></div>
+    <img src="logo.png" alt="RideNow">
+  </div>
+  <div class="steps" id="steps"></div>
+</header>
+
+<main class="body">
+  <div id="s-msg" class="msg"></div>
+  <div class="intro" id="intro"></div>
+  <div id="v-signup">
+
+    <!-- 1 البيانات الأساسية -->
+    <div class="step" data-s="1">
+      <div class="prov hidden" id="prov">
+        <div class="av" id="prov-av"></div>
+        <div class="pi"><b id="prov-name"></b><small id="prov-sub"></small></div>
+        <button type="button" class="link" id="prov-out">خروج</button>
+      </div>
+      <label class="lb">الاسم الكامل</label>
+      <div class="field" id="name-f"><span class="ic" data-i="user"></span><input id="s-name" autocomplete="name" placeholder="الاسم كما في البطاقة"></div>
+      <div class="hint hidden" id="name-hint"></div>
+      <label class="lb">البريد الإلكتروني <span style="color:var(--err)">*</span></label>
+      <div class="field"><span class="ic" data-i="mail"></span><input id="s-email" type="email" readonly tabindex="-1" autocomplete="email" placeholder="name@example.com" style="direction:ltr;text-align:right"></div>
+      <label class="lb">رقم الهاتف</label>
+      <div class="field"><span class="ic" data-i="phone"></span><input id="s-phone" inputmode="numeric" maxlength="11" placeholder="01012345678"></div>
+      <label class="lb">النوع</label>
+      <div class="seg">
+        <label><input type="radio" name="gender" value="male" checked><span class="c"><span data-i="male" style="display:flex"></span>ذكر</span></label>
+        <label><input type="radio" name="gender" value="female"><span class="c"><span data-i="female" style="display:flex"></span>أنثى</span></label>
+      </div>
+      <label class="lb">نوع الحساب</label>
+      <div class="seg">
+        <label><input type="radio" name="role" value="client" checked><span class="c"><span data-i="user" style="display:flex"></span>عميل</span></label>
+        <label><input type="radio" name="role" value="driver"><span class="c"><span data-i="car" style="display:flex"></span>سائق</span></label>
+      </div>
+      <div class="nav"><span class="sp2"></span><button class="btn" data-next>التالي</button></div>
     </div>
-    <div class="pbar"><i id="pbar"></i></div>
-    <div class="plabels" id="steps"></div>
-  </header>
-  <main class="body">
-    <div id="s-msg" class="msg"></div>
-    <div class="intro" id="intro"></div>
-    <div id="v-signup" class="oa">
-      <!-- 1 البيانات الأساسية -->
-      <div class="step" data-s="1">
-        <div class="prov hidden" id="prov">
-          <div class="av" id="prov-av"></div>
-          <div class="pi"><b id="prov-name"></b><small id="prov-sub"></small></div>
-          <button type="button" class="link" id="prov-out">خروج</button>
-        </div>
-        <label class="lb">الاسم الكامل</label>
-        <div class="field" id="name-f"><span class="ic" data-i="user"></span><input id="s-name" autocomplete="name" placeholder="الاسم كما في البطاقة"></div>
-        <div class="hint hidden" id="name-hint"></div>
-        <label class="lb">البريد الإلكتروني <span style="color:var(--mut);font-weight:600">(اختياري)</span></label>
-        <div class="field"><span class="ic" data-i="mail"></span><input id="s-email" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" style="direction:ltr;text-align:right"></div>
-        <label class="lb">رقم الهاتف</label>
-        <div class="field"><span class="ic" data-i="phone"></span><input id="s-phone" inputmode="numeric" maxlength="11" placeholder="01012345678"></div>
-        <label class="lb">النوع</label>
-        <div class="radios">
-          <label><input type="radio" name="gender" value="male" checked> ذكر</label>
-          <label><input type="radio" name="gender" value="female"> أنثى</label>
-        </div>
-        <label class="lb">نوع الحساب</label>
-        <div class="radios">
-          <label><input type="radio" name="role" value="client" checked> عميل</label>
-          <label><input type="radio" name="role" value="driver"> سائق</label>
-        </div>
-        <div class="nav"><span class="sp2"></span><button class="btn" data-next>التالي</button></div>
-      </div>
 
-      <!-- 2 الهوية -->
-      <div class="step hidden" data-s="2">
-        <label class="lb">ادخل رقمك القومي</label>
-        <div class="field"><span class="ic" data-i="id"></span><input id="s-nid" inputmode="numeric" maxlength="14" placeholder="14 رقم"></div>
-        <div class="hint" id="nid-hint">يجب أن يكون الرقم القومي صحيحًا ومطابقًا للنوع</div>
-        <div class="idbox">
-          <div class="t"><span data-i="card" style="display:flex"></span>صورة الهوية</div>
-          <div class="pics">
-            <button type="button" class="pic" id="pic-front"><span data-i="cam" style="display:flex"></span><b>الوجه الأمامي</b></button>
-            <button type="button" class="pic" id="pic-back"><span data-i="cam" style="display:flex"></span><b>الوجه الخلفي</b></button>
-          </div>
-          <div class="hint" style="margin:8px 0 0">الصورة بتتاخد من الكاميرا مباشرة، ولازم البطاقة الأصلية تبان كاملة وواضحة</div>
+    <!-- 2 الهوية -->
+    <div class="step hidden" data-s="2">
+      <label class="lb">ادخل رقمك القومي</label>
+      <div class="field"><span class="ic" data-i="id"></span><input id="s-nid" inputmode="numeric" maxlength="14" placeholder="14 رقم"></div>
+      <div class="hint" id="nid-hint">يجب أن يكون الرقم القومي صحيحًا ومطابقًا للنوع</div>
+      <div class="idbox">
+        <div class="t"><span data-i="card" style="display:flex"></span>صورة الهوية</div>
+        <div class="pics">
+          <button type="button" class="pic" id="pic-front"><span data-i="cam" style="display:flex"></span><b>الوجه الأمامي</b></button>
+          <button type="button" class="pic" id="pic-back"><span data-i="cam" style="display:flex"></span><b>الوجه الخلفي</b></button>
         </div>
-        <label class="lb">كلمة المرور</label>
-        <div class="field"><span class="ic" data-i="lock"></span><input id="s-pass" type="password" autocomplete="new-password" placeholder="8 أحرف على الأقل (حروف وأرقام)"><button type="button" class="eye" data-eye="s-pass" aria-label="إظهار كلمة المرور"></button></div>
-        <div class="field"><span class="ic" data-i="lock"></span><input id="s-pass2" type="password" autocomplete="new-password" placeholder="تأكيد كلمة المرور"></div>
-        <div class="nav"><button type="button" class="bk2" data-prev>العودة</button><button class="btn" data-next>التالي</button></div>
+        <div class="hint" style="margin:8px 0 0">الصورة بتتاخد من الكاميرا مباشرة، ولازم البطاقة الأصلية تبان كاملة وواضحة</div>
       </div>
+      <label class="lb">كلمة المرور</label>
+      <div class="field"><span class="ic" data-i="lock"></span><input id="s-pass" type="password" autocomplete="new-password" placeholder="8 أحرف على الأقل (حروف وأرقام)"><button type="button" class="eye" data-eye="s-pass" aria-label="إظهار كلمة المرور"></button></div>
+      <div class="field"><span class="ic" data-i="lock"></span><input id="s-pass2" type="password" autocomplete="new-password" placeholder="تأكيد كلمة المرور"></div>
+      <div class="nav"><button type="button" class="bk2" data-prev>العودة</button><button class="btn" data-next>التالي</button></div>
+    </div>
 
-      <!-- 3 العنوان -->
-      <div class="step hidden" data-s="3">
-        <label class="lb">المحافظة</label>
-        <div class="field"><span class="ic" data-i="pin"></span><select id="s-gov"></select></div>
-        <label class="lb">المدينة / المنطقة</label>
-        <div class="field"><span class="ic" data-i="pin"></span><input id="s-city" placeholder="المدينة أو المنطقة"></div>
-        <label class="lb">العنوان بالتفصيل</label>
-        <div class="field"><span class="ic" data-i="home"></span><input id="s-addr" autocomplete="street-address" placeholder="الشارع، رقم المبنى"></div>
-        <div class="nav"><button type="button" class="bk2" data-prev>العودة</button><button class="btn" data-next>التالي</button></div>
+    <!-- 3 العنوان -->
+    <div class="step hidden" data-s="3">
+      <label class="lb">المحافظة</label>
+      <div class="field"><span class="ic" data-i="pin"></span><select id="s-gov"></select></div>
+      <label class="lb">المدينة / المنطقة</label>
+      <div class="field"><span class="ic" data-i="pin"></span><input id="s-city" placeholder="المدينة أو المنطقة"></div>
+      <label class="lb">العنوان بالتفصيل</label>
+      <div class="field"><span class="ic" data-i="home"></span><input id="s-addr" autocomplete="street-address" placeholder="الشارع، رقم المبنى"></div>
+      <div class="nav"><button type="button" class="bk2" data-prev>العودة</button><button class="btn" data-next>التالي</button></div>
+    </div>
+
+    <!-- 4 التحقق -->
+    <div class="step hidden" data-s="4">
+      <div class="idbox">
+        <div class="t"><span data-i="user" style="display:flex"></span>التحقق من الوجه</div>
+        <p class="hint" style="margin:0 0 8px">هنفتح الكاميرا ونصوّر وشك من 5 اتجاهات: الأمام واليمين والشمال وفوق وتحت.</p>
+        <div class="poses" id="poses"></div>
+        <button type="button" class="btn" id="face-start" style="height:42px;font-size:15px;margin-top:10px">ابدأ التحقق من الوجه</button>
       </div>
+      <label style="display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0 12px;cursor:pointer">
+        <input type="checkbox" id="s-agree" style="accent-color:var(--blue);width:18px;height:18px;margin-top:3px">
+        <span>أؤكد أن البيانات والصور صحيحة وأوافق على شروط الاستخدام وسياسة الخصوصية</span>
+      </label>
+      <div class="nav"><button type="button" class="bk2" data-prev>العودة</button><button class="btn" id="s-submit">إنشاء الحساب</button></div>
+    </div>
 
-      <!-- 4 التحقق -->
-      <div class="step hidden" data-s="4">
-        <div class="idbox">
-          <div class="t"><span data-i="user" style="display:flex"></span>التحقق من الوجه</div>
-          <p class="hint" style="margin:0 0 8px">هنفتح الكاميرا ونصوّر وشك من 5 اتجاهات: الأمام واليمين والشمال وفوق وتحت.</p>
-          <div class="poses" id="poses"></div>
-          <button type="button" class="btn" id="face-start" style="height:42px;font-size:15px;margin-top:8px">ابدأ التحقق من الوجه</button>
-        </div>
-        <label style="display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0 12px;cursor:pointer">
-          <input type="checkbox" id="s-agree" style="accent-color:var(--blue);width:18px;height:18px;margin-top:3px">
-          <span>أؤكد أن البيانات والصور صحيحة وأوافق على شروط الاستخدام وسياسة الخصوصية</span>
-        </label>
-        <div class="nav"><button type="button" class="bk2" data-prev>العودة</button><button class="btn" id="s-submit">إنشاء الحساب</button></div>
-      </div>
-
-      <!-- 5 اكتمل -->
-      <div class="step hidden" data-s="5">
-        <div class="done-box">
-          <div class="ok" data-i="check"></div>
-          <h2 style="margin-bottom:6px">تم حفظ بياناتك</h2>
-          <p style="color:var(--mut);font-size:14.5px;line-height:1.8;margin-bottom:14px">جاري فتح صفحتك الرئيسية... وحسابك دلوقتي قيد مراجعة الهوية.</p>
-          <button class="btn" id="to-login">فتح صفحتي الآن</button>
-        </div>
+    <!-- 5 اكتمل -->
+    <div class="step hidden" data-s="5">
+      <div class="done-box">
+        <div class="ok" data-i="check"></div>
+        <h2>تم حفظ بياناتك</h2>
+        <p>جاري فتح صفحتك الرئيسية... وحسابك دلوقتي قيد مراجعة الهوية.</p>
+        <button class="btn" id="to-login">فتح صفحتي الآن</button>
       </div>
     </div>
-  </main>
-</div>
+  </div>
+</main>
 
 <div class="modal" id="id-modal">
   <div class="stage" id="id-stage"><video id="id-video" playsinline muted></video><div id="id-frame"></div>
@@ -354,10 +250,10 @@ body:not(.ready) .pgw{visibility:hidden}
 const SUPABASE_URL = "https://odjlhzojqsrbqffehukm.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_yRm2rQvgy0NK_CIqoqtYdw_LBve2iAU";
 const BUCKET = "id-cards";
-const EMAIL_DOMAIN = "ridenow.app"; // الإيميل الداخلي = الرقم القومي@ridenow.app
+const LOGIN_PAGE = "index.html"; // غيّره لو صفحة الدخول اسمها تاني
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ============ الأيقونات (SVG مش إيموجي) ============ */
+/* ============ الأيقونات ============ */
 const S = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const ICONS = {
   id:S('<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.6 1.8-2.2 3-2.2s2.4.6 3 2.2M14 10h4M14 13h3"/>'),
@@ -372,7 +268,10 @@ const ICONS = {
   eyeoff:S('<path d="M3 3l18 18M6.5 7.5A17 17 0 002 12s3.5 7 10 7c1.7 0 3.2-.4 4.5-1M10.6 6.1A9.8 9.8 0 0112 6c6.5 0 10 6 10 6a17 17 0 01-3.2 3.8M9.9 9.9a3 3 0 004.2 4.2"/>'),
   back:S('<path d="M9 5l7 7-7 7"/>'),
   mail:S('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'),
-  check:S('<path d="M5 12.5l4.5 4.5L19 7.5"/>')
+  check:S('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+  male:S('<circle cx="10" cy="14" r="5"/><path d="M14 10l6-6M15 4h5v5"/>'),
+  female:S('<circle cx="12" cy="9" r="5"/><path d="M12 14v7M9 18h6"/>'),
+  car:S('<path d="M5 16v-5l2-5h10l2 5v5M3 16h18M7 19v-3M17 19v-3"/><circle cx="8" cy="13" r=".8"/><circle cx="16" cy="13" r=".8"/>')
 };
 const $ = (s,r=document)=>r.querySelector(s), $$ = (s,r=document)=>[...r.querySelectorAll(s)];
 $$('[data-i]').forEach(e=>{ e.innerHTML = ICONS[e.dataset.i]; });
@@ -383,13 +282,12 @@ $$('[data-eye]').forEach(b=>{
 });
 
 /* ============ أدوات ============ */
-function msg(el,text,ok){ el.textContent=text||''; el.className='msg'+(text?' show':'')+(ok?' okm':''); }
+function msg(el,text,ok){ el.textContent=text||''; el.className='msg'+(text?' show':''); }
 ['s-phone','s-nid'].forEach(id=>$('#'+id).addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,''); }));
 
 const GOVS={"01":"القاهرة","02":"الإسكندرية","03":"بورسعيد","04":"السويس","11":"دمياط","12":"الدقهلية","13":"الشرقية","14":"القليوبية","15":"كفر الشيخ","16":"الغربية","17":"المنوفية","18":"البحيرة","19":"الإسماعيلية","21":"الجيزة","22":"بني سويف","23":"الفيوم","24":"المنيا","25":"أسيوط","26":"سوهاج","27":"قنا","28":"أسوان","29":"الأقصر","31":"البحر الأحمر","32":"الوادي الجديد","33":"مطروح","34":"شمال سيناء","35":"جنوب سيناء","88":"خارج الجمهورية"};
 $('#s-gov').innerHTML='<option value="">اختر المحافظة</option>'+Object.values(GOVS).filter(g=>g!=="خارج الجمهورية").map(g=>`<option>${g}</option>`).join('');
 
-/* التحقق الحقيقي من الرقم القومي (مش بس 14 رقم) */
 function checkNID(n,gender){
   if(!/^\d{14}$/.test(n)) return 'الرقم القومي لازم يكون 14 رقم';
   if(n[0]!=='2'&&n[0]!=='3') return 'الرقم القومي غير صحيح';
@@ -405,10 +303,29 @@ function checkNID(n,gender){
 }
 const checkPhone=p=>/^01[0125]\d{8}$/.test(p);
 const checkPass=p=>p.length>=8&&/[A-Za-z\u0621-\u064A]/.test(p)&&/\d/.test(p);
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const homeOf=r=>r==='driver'?'driver.html':'client.html';
+let routeHold=false;
+
+function nameIssue(n){
+  n=(n||'').trim().replace(/\s+/g,' ');
+  if(!n) return 'اكتب اسمك الكامل';
+  if(!/^[\u0621-\u064AA-Za-z ]+$/.test(n)) return 'الاسم لازم يكون حروف بس (من غير أرقام أو رموز أو إيموجي)';
+  const w=n.split(' ');
+  if(w.length<3) return 'اكتب الاسم ثلاثي على الأقل زي ما في البطاقة';
+  if(w.some(x=>x.length<2)) return 'كل جزء من الاسم لازم يكون حرفين على الأقل';
+  if(/(.)\1{2,}/.test(n)) return 'الاسم فيه حروف متكررة كتير، اكتب اسمك الحقيقي';
+  if(w.some(x=>/^[A-Za-z]+$/.test(x)&&x.length>3&&!/[aeiouy]/i.test(x))) return 'الاسم شكله عشوائي، اكتب اسمك الحقيقي';
+  return '';
+}
+function nameHint(){
+  const h=$('#name-hint'), f=$('#name-f'), e=nameIssue($('#s-name').value);
+  h.className='hint '+(e?'bad':'good'); h.textContent=e||'الاسم تمام'; f.classList.toggle('bad',!!e);
+}
+$('#s-name').addEventListener('input',nameHint);
 
 /* ============ التنقل ============ */
-const vSign=$('#v-signup');
-let step=1, role='client', files={front:null,back:null,selfie:null}, oauthUser=null;
+let step=1, files={front:null,back:null}, oauthUser=null;
 const LABELS=['البيانات','الهوية','العنوان','التحقق','اكتمل'];
 const INTRO={
   1:['user','بياناتك الأساسية','راجع اسمك وبياناتك اللي جت من حسابك'],
@@ -417,23 +334,22 @@ const INTRO={
   4:['cam','التحقق من الوجه','صوّر وشك من 5 اتجاهات لتأكيد هويتك'],
   5:['check','تمام','تم حفظ بياناتك']
 };
+const val=n=>document.querySelector(`input[name=${n}]:checked`).value;
 function goStep(n){
   step=n; msg($('#s-msg'),'');
   $$('.step').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==n));
   $('#s-sub').textContent='الخطوة '+n+' من 5';
-  $('#pbar').style.width=(n*20)+'%';
-  $('#steps').innerHTML=LABELS.map((l,i)=>`<span class="${i+1===n?'on':''}">${l}</span>`).join('');
+  $('#steps').innerHTML=LABELS.map((l,i)=>`<div class="st ${i+1===n?'on':''} ${i+1<n?'done':''}"><i>${i+1<n?ICONS.check.replace('<svg','<svg width="15" height="15"'):i+1}</i>${l}</div>`).join('');
   const it=INTRO[n]; $('#intro').innerHTML=`<div class="ib2">${ICONS[it[0]]}</div><div><h2>${it[1]}</h2><p>${it[2]}</p></div>`;
-  $('#s-back').style.visibility=n===5?'hidden':'visible';
+  $('#s-back').style.visibility=(n===1||n===5)?'hidden':'visible';
   window.scrollTo(0,0);
 }
-const showSignup=(n=1)=>goStep(n);
+async function cancelOAuth(){ await sb.auth.signOut(); location.replace(LOGIN_PAGE); }
 $('#s-back').onclick=()=>{ if(step>1) goStep(step-1); else cancelOAuth(); };
+$('#prov-out').onclick=cancelOAuth;
 $('#to-login').onclick=()=>location.replace(homeOf(val('role')));
 $$('[data-prev]').forEach(b=>b.onclick=()=>goStep(step-1));
 
-/* ============ خطوات إنشاء الحساب ============ */
-const val=n=>document.querySelector(`input[name=${n}]:checked`).value;
 function nidHint(){
   const v=$('#s-nid').value, h=$('#nid-hint');
   if(v.length<14){ h.className='hint'; h.textContent=v.length?`${v.length} / 14`:'يجب أن يكون الرقم القومي صحيحًا ومطابقًا للنوع'; return; }
@@ -444,9 +360,8 @@ $$('input[name=gender]').forEach(r=>r.addEventListener('change',nidHint));
 
 function validate(n){
   if(n===1){
-    if(oauthUser){ const ni=nameIssue($('#s-name').value); if(ni) return ni; }
-    else if($('#s-name').value.trim().split(/\s+/).length<3) return 'اكتب الاسم الثلاثي على الأقل';
-    const em=$('#s-email').value.trim(); if(em&&!EMAIL_RE.test(em)) return 'البريد الإلكتروني غير صحيح (أو سيبه فاضي لأنه اختياري)';
+    const ni=nameIssue($('#s-name').value); if(ni) return ni;
+    if(!oauthUser||!EMAIL_RE.test(oauthUser.email||'')) return 'حسابك مفيهوش بريد إلكتروني، فعّل صلاحية الإيميل في حساب جوجل أو فيسبوك وسجّل تاني';
     if(!checkPhone($('#s-phone').value)) return 'رقم الهاتف غير صحيح (مثال: 01012345678)';
   }
   if(n===2){
@@ -471,22 +386,13 @@ $('#s-submit').onclick=async()=>{
   const btn=$('#s-submit'); btn.disabled=true; msg($('#s-msg')); routeHold=true;
   const nid=$('#s-nid').value, pass=$('#s-pass').value;
   try{
-    let user,email;
-    if(oauthUser){ /* دخل بجوجل/فيس: نضيف له كلمة مرور */
-      const {error}=await sb.auth.updateUser({password:pass}); if(error) throw new Error('تعذر حفظ كلمة المرور');
-      if(!oauthUser.email) throw new Error('حسابك مفيهوش إيميل، فعّل صلاحية الإيميل في الحساب وسجّل تاني');
-      user=oauthUser; email=oauthUser.email;
-    }else{
-      email=`${nid}@${EMAIL_DOMAIN}`;
-      const {data,error}=await sb.auth.signUp({email,password:pass});
-      if(error) throw new Error(/registered/i.test(error.message)?'الرقم القومي مسجل بالفعل':'تعذر إنشاء الحساب');
-      if(!data.session) throw new Error('فعّل تسجيل بدون تأكيد الإيميل من إعدادات Supabase');
-      user=data.user;
-    }
+    const {error}=await sb.auth.updateUser({password:pass}); if(error) throw new Error('تعذر حفظ كلمة المرور');
+    if(!oauthUser.email) throw new Error('حسابك مفيهوش إيميل، فعّل صلاحية الإيميل في الحساب وسجّل تاني');
+    const user=oauthUser, email=oauthUser.email;
     const front=await upload(user.id,'front',files.front), back=await upload(user.id,'back',files.back);
     const sp={}; for(const k of ['center','right','left','up','down']) sp[k]=await upload(user.id,'face-'+k,shots[k]);
     const {error:pe}=await sb.from('profiles').upsert({
-      id:user.id,email,contact_email:($('#s-email').value.trim()||null),provider:oauthUser?((oauthUser.app_metadata||{}).provider||'oauth'):'email',full_name:$('#s-name').value.trim(),phone:$('#s-phone').value,national_id:nid,
+      id:user.id,email,contact_email:oauthUser.email,provider:((oauthUser.app_metadata||{}).provider||'oauth'),full_name:$('#s-name').value.trim(),phone:$('#s-phone').value,national_id:nid,
       gender:val('gender'),role:val('role'),governorate:$('#s-gov').value,city:$('#s-city').value.trim(),
       address:$('#s-addr').value.trim(),id_front:front,id_back:back,selfie:sp.center,selfie_center:sp.center,selfie_right:sp.right,selfie_left:sp.left,selfie_up:sp.up,selfie_down:sp.down,
       id_check:{...idCheck,face:{poses:order},checked_at:new Date().toISOString()},status:'pending'
@@ -499,8 +405,8 @@ $('#s-submit').onclick=async()=>{
 };
 
 /* ============ الكاميرا + فحص البطاقة + بصمة الوجه ============ */
-const MIN_ID_MATCH=12;                 // أقل عدد أرقام متطابقة من 14 (قراءة OCR)
-const YAW_T=0.14, PITCH_T=0.06, HOLD=6; // حساسية لفّة الراس وعدد الفريمات الثابتة
+const MIN_ID_MATCH=12;
+const YAW_T=0.14, PITCH_T=0.06, HOLD=6;
 const BACK_WORDS=['الحالة','الاجتماعية','المهنة','الديانة','الزوج','تاريخ','الإصدار','الاصدار','انتهاء','الانتهاء','مسلم','مسيحي','أعزب','متزوج','وزارة','الداخلية','أرمل','مطلق'];
 const POSE_LBL={center:'الأمام',right:'اليمين',left:'الشمال',up:'فوق',down:'تحت'};
 const POSE_TXT={center:'بص للكاميرا مباشرة',right:'لف راسك ببطء ناحية اليمين',left:'لف راسك ببطء ناحية الشمال',up:'ارفع راسك لفوق شوية',down:'نزّل راسك لتحت شوية'};
@@ -630,8 +536,8 @@ async function step_(faces){
   const yaw=(N.x-cx)/fw, pitch=(N.y-eyeY)/(ch.y-eyeY);
   let okp=false;
   if(pose==='center') okp=Math.abs(yaw)<0.07;
-  else if(pose==='right') okp=yaw<-YAW_T;          // يمين المستخدم
-  else if(pose==='left') okp=yaw>YAW_T;            // شمال المستخدم
+  else if(pose==='right') okp=yaw<-YAW_T;
+  else if(pose==='left') okp=yaw>YAW_T;
   else if(pose==='up') okp=Math.abs(yaw)<0.12&&pitch<pBase-PITCH_T;
   else if(pose==='down') okp=Math.abs(yaw)<0.12&&pitch>pBase+PITCH_T;
   if(!okp){ txt.textContent=POSE_TXT[pose]; oval.classList.remove('ok'); hold=0; return; }
@@ -656,7 +562,23 @@ async function upload(uid,name,blob){
   return path;
 }
 
-
+/* ============ تشغيل الصفحة: قراءة الجلسة وتعبئة البيانات ============ */
+goStep(1);
+(async()=>{
+  const {data}=await sb.auth.getSession(), s=data.session;
+  if(!s) return location.replace(LOGIN_PAGE);
+  const u=s.user; oauthUser=u;
+  const {data:p}=await sb.from('profiles').select('national_id,role').eq('id',u.id).maybeSingle();
+  if(p&&p.national_id) return location.replace(homeOf(p.role));
+  const md=u.user_metadata||{}, nm=md.full_name||md.name||'';
+  $('#s-name').value=nm; $('#s-email').value=u.email||'';
+  if(!u.email) msg($('#s-msg'),'حسابك مفيهوش بريد إلكتروني، فعّل صلاحية الإيميل في حساب جوجل أو فيسبوك وسجّل تاني');
+  $('#prov-name').textContent=nm||'حسابك';
+  $('#prov-sub').textContent=u.email||'';
+  $('#prov-av').innerHTML=md.avatar_url?`<img src="${md.avatar_url}" alt="">`:(nm[0]||'؟');
+  $('#prov').classList.remove('hidden');
+  nameHint();
+})();
 </script>
 </body>
 </html>
