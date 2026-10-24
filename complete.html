@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#0b2150">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>إكمال الحساب | RideNow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -199,36 +200,56 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
   .brand p{font-size:24px}
   .brand .side-text{display:block;max-width:420px;margin-top:22px;font-size:16px;line-height:1.9;opacity:.92;font-weight:400}
 }
-body:not(.ready) .card{visibility:hidden}
+
+/* ===== صفحة إكمال الحساب: صفحة كاملة بدون خلفية، تصميم مختلف عن إنشاء الحساب ===== */
+body{background:#eef3fb;color:var(--ink)}
+body:not(.ready) .pgw{visibility:hidden}
+.pgw{min-height:100dvh;display:flex;flex-direction:column}
+.hd{background:linear-gradient(160deg,#0b2150 0%,#123a7d 62%,#1a5fc0 100%);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 18px 20px;border-radius:0 0 28px 28px}
+.hd-in{display:flex;align-items:center;gap:12px;max-width:640px;margin:0 auto}
+.hb{width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.hb svg{width:22px;height:22px}
+.hd-t{flex:1;min-width:0}
+.hd-t b{display:block;font-size:19px;font-weight:800;line-height:1.4}
+.hd-t small{opacity:.85;font-size:13px}
+.hd-in img{width:44px;height:44px;object-fit:contain;flex:none}
+.pbar{max-width:640px;margin:16px auto 8px;height:6px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden}
+.pbar i{display:block;height:100%;width:20%;border-radius:99px;background:#fff;transition:width .35s}
+.plabels{max-width:640px;margin:0 auto;display:flex;justify-content:space-between;font-size:11px;color:#b9c6e4}
+.plabels span.on{color:#fff;font-weight:800}
+.body{flex:1;width:100%;max-width:640px;margin:0 auto;padding:18px 16px 112px;display:flex;flex-direction:column}
+.intro{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.intro .ib2{width:46px;height:46px;border-radius:14px;background:#dce9ff;color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
+.intro .ib2 svg{width:24px;height:24px}
+.intro h2{font-size:18px;font-weight:800;line-height:1.4}
+.intro p{font-size:13px;color:var(--mut);margin-top:1px}
+#v-signup .step{background:#fff;border-radius:20px;padding:18px 16px;box-shadow:0 6px 22px rgba(15,42,92,.08)}
+.step .nav{position:fixed;right:0;left:0;bottom:0;z-index:30;margin:0;background:#fff;box-shadow:0 -8px 24px rgba(15,42,92,.12);padding:12px max(16px,calc((100vw - 640px)/2)) calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:stretch}
+.step .nav .btn{flex:1;min-width:0;height:48px;font-size:16px;border-radius:14px;margin:0}
+.step .nav .bk2{height:48px;min-width:92px;border-radius:14px}
+.step .nav .sp2{display:none}
+.oa .prov{background:linear-gradient(135deg,#0f2a5c,#1a4fa0);border:0;color:#fff;padding:14px;border-radius:16px;margin-bottom:16px}
+.oa .prov .av{width:56px;height:56px;border:3px solid rgba(255,255,255,.35);font-size:22px}
+.oa .prov .pi b{font-size:16px}
+.oa .prov .pi small{color:#cfe0ff}
+.oa .prov .link{color:#ffd0d0}
 </style>
 </head>
 <body>
-<div class="bg"><video class="fill" src="bg.mp4" autoplay muted loop playsinline preload="auto" disablepictureinpicture></video>
-  <video id="bgv" class="main" src="bg.mp4" autoplay muted loop playsinline preload="auto" disablepictureinpicture></video></div>
-
-<main class="screen su">
-  <section class="brand">
-    <!-- الشعار صورة: استبدل src بمسار صورتك مثل logo.png -->
-    <img id="logo" alt="RideNow" src="logo.png">
-    <h1>RideNow</h1>
-    <p>رحلتك بأمان</p>
-    <p class="side-text">سجّل دخولك أو أنشئ حسابك بخطوات بسيطة، وتحقق من هويتك عشان رحلتك وسلامتك يكونوا أولوية.</p>
-  </section>
-
-  <section class="card">
-
-    <!-- ========== إنشاء حساب ========== -->
+<div class="pgw">
+  <header class="hd">
+    <div class="hd-in">
+      <button type="button" class="hb" id="s-back" aria-label="رجوع"></button>
+      <div class="hd-t"><b id="s-title">إكمال بيانات حسابك</b><small id="s-sub"></small></div>
+      <img src="logo.png" alt="RideNow">
+    </div>
+    <div class="pbar"><i id="pbar"></i></div>
+    <div class="plabels" id="steps"></div>
+  </header>
+  <main class="body">
+    <div id="s-msg" class="msg"></div>
+    <div class="intro" id="intro"></div>
     <div id="v-signup" class="oa">
-      <div class="top">
-        <div class="row">
-          <button type="button" class="bk" id="s-back" aria-label="رجوع"></button>
-          <b id="s-title">إنشاء حساب جديد</b>
-          <span class="sp"></span>
-        </div>
-        <div class="steps" id="steps"></div>
-      </div>
-      <div id="s-msg" class="msg"></div>
-
       <!-- 1 البيانات الأساسية -->
       <div class="step" data-s="1">
         <div class="prov hidden" id="prov">
@@ -305,14 +326,14 @@ body:not(.ready) .card{visibility:hidden}
       <div class="step hidden" data-s="5">
         <div class="done-box">
           <div class="ok" data-i="check"></div>
-          <h2 style="margin-bottom:6px">تم إنشاء حسابك</h2>
-          <p style="color:var(--mut);font-size:14.5px;line-height:1.8;margin-bottom:14px">طلبك قيد مراجعة الهوية. تقدر تسجل دخولك بالرقم القومي وكلمة المرور.</p>
-          <button class="btn" id="to-login">الذهاب لتسجيل الدخول</button>
+          <h2 style="margin-bottom:6px">تم حفظ بياناتك</h2>
+          <p style="color:var(--mut);font-size:14.5px;line-height:1.8;margin-bottom:14px">جاري فتح صفحتك الرئيسية... وحسابك دلوقتي قيد مراجعة الهوية.</p>
+          <button class="btn" id="to-login">فتح صفحتي الآن</button>
         </div>
       </div>
     </div>
-  </section>
-</main>
+  </main>
+</div>
 
 <div class="modal" id="id-modal">
   <div class="stage" id="id-stage"><video id="id-video" playsinline muted></video><div id="id-frame"></div>
@@ -388,81 +409,28 @@ const checkPass=p=>p.length>=8&&/[A-Za-z\u0621-\u064A]/.test(p)&&/\d/.test(p);
 /* ============ التنقل ============ */
 const vSign=$('#v-signup');
 let step=1, role='client', files={front:null,back:null,selfie:null}, oauthUser=null;
-const TITLES={1:'إنشاء حساب جديد',2:'الهوية',3:'العنوان',4:'التحقق',5:'اكتمل'};
-const LABELS=['البيانات الأساسية','الهوية','العنوان','التحقق','اكتمل'];
+const LABELS=['البيانات','الهوية','العنوان','التحقق','اكتمل'];
+const INTRO={
+  1:['user','بياناتك الأساسية','راجع اسمك وبياناتك اللي جت من حسابك'],
+  2:['id','التحقق من الهوية','الرقم القومي وصور البطاقة وكلمة مرور تدخل بيها بعد كده'],
+  3:['pin','عنوانك','المحافظة والمدينة والعنوان بالتفصيل'],
+  4:['cam','التحقق من الوجه','صوّر وشك من 5 اتجاهات لتأكيد هويتك'],
+  5:['check','تمام','تم حفظ بياناتك']
+};
 function goStep(n){
   step=n; msg($('#s-msg'),'');
   $$('.step').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==n));
-  $('#s-title').textContent=(n===1&&oauthUser)?'إكمال بيانات حسابك':TITLES[n];
-  $('#steps').innerHTML=LABELS.map((l,i)=>`<div class="st ${i+1===n?'on':''} ${i+1<n?'done':''}"><i>${i+1<n?ICONS.check.replace('<svg','<svg width="15" height="15"'):i+1}</i>${l}</div>`).join('');
+  $('#s-sub').textContent='الخطوة '+n+' من 5';
+  $('#pbar').style.width=(n*20)+'%';
+  $('#steps').innerHTML=LABELS.map((l,i)=>`<span class="${i+1===n?'on':''}">${l}</span>`).join('');
+  const it=INTRO[n]; $('#intro').innerHTML=`<div class="ib2">${ICONS[it[0]]}</div><div><h2>${it[1]}</h2><p>${it[2]}</p></div>`;
   $('#s-back').style.visibility=n===5?'hidden':'visible';
-  $('.card').scrollTop=0;
+  window.scrollTo(0,0);
 }
 const showSignup=(n=1)=>goStep(n);
 $('#s-back').onclick=()=>{ if(step>1) goStep(step-1); else cancelOAuth(); };
-$('#to-login').onclick=()=>location.replace('index.html');
+$('#to-login').onclick=()=>location.replace(homeOf(val('role')));
 $$('[data-prev]').forEach(b=>b.onclick=()=>goStep(step-1));
-
-/* ============ الرجوع من Google / Facebook ============ */
-let routed=false, routeHold=false;
-const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-/* فحص الاسم: لو الاسم عشوائي أو مش اسم حقيقي بنجبره يعدّله */
-function nameIssue(n){
-  n=(n||'').trim().replace(/\s+/g,' ');
-  if(!n) return 'اكتب اسمك الكامل';
-  if(!/^[\u0621-\u064AA-Za-z ]+$/.test(n)) return 'الاسم لازم يكون حروف بس (من غير أرقام أو رموز أو إيموجي)';
-  const w=n.split(' ');
-  if(w.length<3) return 'اكتب الاسم ثلاثي على الأقل زي ما في البطاقة';
-  if(w.some(x=>x.length<2)) return 'كل جزء من الاسم لازم يكون حرفين على الأقل';
-  if(/(.)\1{2,}/.test(n)) return 'الاسم فيه حروف متكررة كتير، اكتب اسمك الحقيقي';
-  if(w.some(x=>/^[A-Za-z]+$/.test(x)&&x.length>3&&!/[aeiouy]/i.test(x))) return 'الاسم شكله عشوائي، اكتب اسمك الحقيقي';
-  return '';
-}
-function nameHint(){
-  const h=$('#name-hint'), f=$('#name-f');
-  if(!oauthUser){ h.classList.add('hidden'); f.classList.remove('bad'); return; }
-  const e=nameIssue($('#s-name').value);
-  h.classList.remove('hidden'); h.className='hint '+(e?'bad':'good'); h.textContent=e||'الاسم تمام';
-  f.classList.toggle('bad',!!e);
-}
-$('#s-name').addEventListener('input',nameHint);
-
-function setMode(oa){
-  $('#v-signup').classList.toggle('oa',oa);
-  $('#prov').classList.toggle('hidden',!oa);
-  if(!oa){ oauthUser=null; nameHint(); }
-}
-function startOAuth(u){
-  oauthUser=u; const md=u.user_metadata||{}, nm=(md.full_name||md.name||'').trim(), av=md.avatar_url||md.picture||'';
-  const prov=(u.app_metadata||{}).provider==='facebook'?'Facebook':'Google';
-  $('#s-name').value=nm; $('#s-email').value=u.email||'';
-  const box=$('#prov-av'); box.innerHTML='';
-  if(av){ const im=new Image(); im.referrerPolicy='no-referrer'; im.alt=''; im.src=av; im.onerror=()=>{ box.textContent=(nm||'؟')[0]; }; box.appendChild(im); }
-  else box.textContent=(nm||'؟')[0];
-  $('#prov-name').textContent=nm||u.email||'حسابك';
-  $('#prov-sub').textContent='مسجّل دخول بـ '+prov+(u.email?' • '+u.email:'');
-  setMode(true); oauthUser=u; showSignup(1); nameHint();
-  const bad=nameIssue(nm);
-  msg($('#s-msg'),bad?'اسم حسابك على '+prov+' محتاج تعديل: '+bad:'أهلاً بيك! كمّل بياناتك مرة واحدة، وبعدها تدخل بالرقم القومي وكلمة المرور.',!bad);
-}
-async function cancelOAuth(){ await sb.auth.signOut(); location.replace('index.html'); }
-$('#prov-out').onclick=cancelOAuth;
-const homeOf=r=>r==='driver'?'driver.html':'client.html';
-
-/* حماية الصفحة: لازم يكون داخل بجوجل/فيس وبياناته ناقصة */
-(async()=>{
-  try{
-    goStep(1);
-    const {data:{session}}=await sb.auth.getSession();
-    if(!session) return location.replace('index.html');
-    const u=session.user;
-    const {data:p,error}=await sb.from('profiles').select('national_id,role').eq('id',u.id).maybeSingle();
-    if(error){ document.body.classList.add('ready'); return msg($('#s-msg'),'تعذر قراءة الحساب من قاعدة البيانات: '+error.message+' (اتأكد إنك شغّلت الـ SQL)'); }
-    if(p&&p.national_id) return location.replace(homeOf(p.role));
-    if(((u.app_metadata||{}).provider||'email')==='email') return location.replace('index.html');
-    startOAuth(u); document.body.classList.add('ready');
-  }catch(e){ document.body.classList.add('ready'); msg($('#s-msg'),'حصلت مشكلة في الاتصال، حدّث الصفحة'); }
-})();
 
 /* ============ خطوات إنشاء الحساب ============ */
 const val=n=>document.querySelector(`input[name=${n}]:checked`).value;
@@ -524,8 +492,8 @@ $('#s-submit').onclick=async()=>{
       id_check:{...idCheck,face:{poses:order},checked_at:new Date().toISOString()},status:'pending'
     });
     if(pe) throw new Error(/duplicate|unique/i.test(pe.message)?'الرقم القومي أو الهاتف مسجل بالفعل':'تعذر حفظ البيانات: '+pe.message);
-    msg($('#s-msg'),'تم حفظ بياناتك بنجاح، جاري فتح صفحتك...',true);
-    setTimeout(()=>location.replace(homeOf(val('role'))),900); return;
+    goStep(5);
+    setTimeout(()=>location.replace(homeOf(val('role'))),1600); return;
   }catch(err){ msg($('#s-msg'),err.message); }
   routeHold=false; btn.disabled=false;
 };
@@ -688,8 +656,6 @@ async function upload(uid,name,blob){
   return path;
 }
 
-/* تشغيل فيديو الخلفية (بعض المتصفحات بتمنع التشغيل التلقائي لحد أول لمسة) */
-(()=>{ const vs=$$('.bg video'); const go=()=>vs.forEach(v=>v.play().catch(()=>{})); go(); ['touchstart','click'].forEach(e=>addEventListener(e,go,{once:true,passive:true})); })();
 
 </script>
 </body>
