@@ -186,7 +186,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
       <label class="lb">البريد الإلكتروني <span style="color:var(--err)">*</span></label>
       <div class="field"><span class="ic" data-i="mail"></span><input id="s-email" type="email" readonly tabindex="-1" autocomplete="email" placeholder="name@example.com" style="direction:ltr;text-align:right"></div>
       <label class="lb">رقم الهاتف</label>
-      <div class="field"><span class="ic" data-i="phone"></span><input id="s-phone" inputmode="numeric" maxlength="11" placeholder="01012345678"></div>
+      <div class="field"><span class="ic" data-i="phone"></span><input id="s-phone" inputmode="numeric" placeholder="01012345678"></div>
       <label class="lb">النوع</label>
       <div class="seg">
         <label><input type="radio" name="gender" value="male" checked><span class="c"><span data-i="male" style="display:flex"></span>ذكر</span></label>
@@ -211,7 +211,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
     <!-- 2 الهوية -->
     <div class="step hidden" data-s="2">
       <label class="lb">ادخل رقمك القومي</label>
-      <div class="field"><span class="ic" data-i="id"></span><input id="s-nid" inputmode="numeric" maxlength="14" placeholder="14 رقم"></div>
+      <div class="field"><span class="ic" data-i="id"></span><input id="s-nid" inputmode="numeric" placeholder="14 رقم"></div>
       <div class="hint" id="nid-hint"></div>
       <div class="idbox">
         <div class="t"><span data-i="card" style="display:flex"></span>صورة الهوية</div>
@@ -329,7 +329,9 @@ $$('[data-eye]').forEach(b=>{
 
 /* ============ أدوات ============ */
 function msg(el,text,ok){ el.textContent=text||''; el.className='msg'+(text?' show':''); }
-['s-phone','s-nid'].forEach(id=>$('#'+id).addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,''); }));
+/* الأرقام العربية (٠١٢٣) والإنجليزي (0123) الاتنين يشتغلوا، والإملاء الصوتي كمان */
+const toLatin=t=>t.replace(/[\u0660-\u0669]/g,d=>d.charCodeAt(0)-1632).replace(/[\u06F0-\u06F9]/g,d=>d.charCodeAt(0)-1776);
+[['s-phone',11],['s-nid',14]].forEach(([id,n])=>$('#'+id).addEventListener('input',e=>{ e.target.value=toLatin(e.target.value).replace(/\D/g,'').slice(0,n); }));
 
 const GOVS={"01":"القاهرة","02":"الإسكندرية","03":"بورسعيد","04":"السويس","11":"دمياط","12":"الدقهلية","13":"الشرقية","14":"القليوبية","15":"كفر الشيخ","16":"الغربية","17":"المنوفية","18":"البحيرة","19":"الإسماعيلية","21":"الجيزة","22":"بني سويف","23":"الفيوم","24":"المنيا","25":"أسيوط","26":"سوهاج","27":"قنا","28":"أسوان","29":"الأقصر","31":"البحر الأحمر","32":"الوادي الجديد","33":"مطروح","34":"شمال سيناء","35":"جنوب سيناء","88":"خارج الجمهورية"};
 $('#s-gov').innerHTML='<option value="">اختر المحافظة</option>'+Object.values(GOVS).filter(g=>g!=="خارج الجمهورية").map(g=>`<option>${g}</option>`).join('');
