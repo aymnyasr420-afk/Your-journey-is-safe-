@@ -34,6 +34,9 @@ body{font-family:"Cairo",system-ui,sans-serif;color:var(--ink);background:#fff;d
 .seg input{position:absolute;opacity:0;pointer-events:none}
 .seg .c{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:10px;font-weight:700;font-size:15px;color:var(--mut);background:transparent;transition:background .15s,color .15s}
 .seg .c svg{width:22px;height:22px}
+.seg.s3{grid-template-columns:repeat(3,1fr)}
+.seg.s3 .c{flex-direction:column;height:98px;gap:8px;font-size:14px}
+.seg.s3 .c svg{width:54px;height:36px}
 .seg input:checked+.c{background:var(--blue);color:#fff}
 .seg input:focus-visible+.c{outline:2px solid var(--blue)}
 
@@ -178,6 +181,14 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
         <label><input type="radio" name="role" value="client" checked><span class="c"><span data-i="user" style="display:flex"></span>عميل</span></label>
         <label><input type="radio" name="role" value="driver"><span class="c"><span data-i="car" style="display:flex"></span>سائق</span></label>
       </div>
+      <div id="veh" class="hidden">
+        <label class="lb">نوع المركبة</label>
+        <div class="seg s3">
+          <label><input type="radio" name="vehicle" value="car" checked><span class="c"><span data-i="vcar" style="display:flex"></span>سيارة</span></label>
+          <label><input type="radio" name="vehicle" value="tuktuk"><span class="c"><span data-i="vtuk" style="display:flex"></span>تيك توك</span></label>
+          <label><input type="radio" name="vehicle" value="motorcycle"><span class="c"><span data-i="vmoto" style="display:flex"></span>موتوسيكل</span></label>
+        </div>
+      </div>
       <div class="nav"><span class="sp2"></span><button class="btn" data-next>التالي</button></div>
     </div>
 
@@ -261,6 +272,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ============ الأيقونات ============ */
 const S = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const V = p => `<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const ICONS = {
   id:S('<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.6 1.8-2.2 3-2.2s2.4.6 3 2.2M14 10h4M14 13h3"/>'),
   card:S('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>'),
@@ -277,7 +289,12 @@ const ICONS = {
   check:S('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
   male:S('<circle cx="10" cy="14" r="5"/><path d="M14 10l6-6M15 4h5v5"/>'),
   female:S('<circle cx="12" cy="9" r="5"/><path d="M12 14v7M9 18h6"/>'),
-  car:S('<path d="M5 16v-5l2-5h10l2 5v5M3 16h18M7 19v-3M17 19v-3"/><circle cx="8" cy="13" r=".8"/><circle cx="16" cy="13" r=".8"/>')
+  car:S('<path d="M5 16v-5l2-5h10l2 5v5M3 16h18M7 19v-3M17 19v-3"/><circle cx="8" cy="13" r=".8"/><circle cx="16" cy="13" r=".8"/>'),
+  tuktuk:S('<path d="M4 15V8l3-3h8l4 5v5M4 15h15M9 8h6"/><circle cx="7" cy="17.5" r="2"/><circle cx="17" cy="17.5" r="2"/>'),
+  moto:S('<circle cx="6" cy="16" r="3"/><circle cx="18" cy="16" r="3"/><path d="M6 16l4-6h4l4 6M10 10l-1-3h3M14 10l2-3h2"/>'),
+  vcar:V('<path d="M4 23v-5a4 4 0 014-4h32a4 4 0 014 4v5h-4M9 23H4M18 23h12"/><path d="M12 14l4-7h16l4 7M24 7v7"/><circle cx="13.5" cy="24" r="4.5"/><circle cx="34.5" cy="24" r="4.5"/>'),
+  vtuk:V('<path d="M8 6h26l6 9v9h-3M8 6v18h2M18 24h12M8 15h32M21 6v9"/><circle cx="14" cy="25" r="4.5"/><circle cx="34" cy="25" r="4.5"/>'),
+  vmoto:V('<circle cx="9" cy="23" r="5.5"/><circle cx="39" cy="23" r="5.5"/><path d="M9 23l8-9h10l6 9M17 14l-3-5h-5M27 14l4-7h5M20 14l4 9h9"/>')
 };
 const $ = (s,r=document)=>r.querySelector(s), $$ = (s,r=document)=>[...r.querySelectorAll(s)];
 $$('[data-i]').forEach(e=>{ e.innerHTML = ICONS[e.dataset.i]; });
@@ -335,7 +352,7 @@ let step=1, files={front:null,back:null}, oauthUser=null;
 const LABELS=['البيانات','الهوية','العنوان','التحقق','اكتمل'];
 const INTRO={1:['user','بياناتك الأساسية'],2:['id','التحقق من الهوية'],3:['pin','عنوانك'],4:['cam','التحقق من الوجه'],5:['check','تمام']};
 const HELP={
-  1:['بياناتك الأساسية',['اكتب الاسم ثلاثي زي ما في البطاقة.','البريد ورقم الهاتف بيتاخدوا من حسابك لو متاحين، ولو الهاتف فاضي اكتبه.','اختار النوع ونوع الحساب (عميل أو سائق).']],
+  1:['بياناتك الأساسية',['اكتب الاسم ثلاثي زي ما في البطاقة.','البريد ورقم الهاتف بيتاخدوا من حسابك لو متاحين، ولو الهاتف فاضي اكتبه.','اختار النوع ونوع الحساب (عميل أو سائق).','لو اخترت سائق، اختار مركبتك: سيارة أو تيك توك أو موتوسيكل.']],
   2:['التحقق من الهوية',['اكتب الرقم القومي الصحيح ويطابق النوع.','صوّر الوجه الأمامي والخلفي للبطاقة بالكاميرا، كاملة وواضحة.','اختار كلمة مرور 8 أحرف على الأقل فيها حروف وأرقام.']],
   3:['عنوانك',['اختار المحافظة.','اكتب المدينة أو المنطقة.','اكتب العنوان بالتفصيل: الشارع ورقم المبنى.']],
   4:['التحقق من الوجه',['اضغط ابدأ واسمح للكاميرا.','خلي وشك جوه الدايرة واتبع الأسهم لتحريك راسك.','لازم الـ 5 صور يكتملوا، وبعدها وافق على الشروط واضغط إنشاء الحساب.']],
@@ -370,6 +387,7 @@ function nidHint(){
   const e=checkNID(v,val('gender')); h.className='hint '+(e?'bad':'good'); h.textContent=e||'الرقم القومي صحيح';
 }
 $('#s-nid').addEventListener('input',nidHint);
+$$('input[name=role]').forEach(r=>r.addEventListener('change',()=>$('#veh').classList.toggle('hidden',val('role')!=='driver')));
 $$('input[name=gender]').forEach(r=>r.addEventListener('change',nidHint));
 
 function validate(n){
@@ -407,7 +425,7 @@ $('#s-submit').onclick=async()=>{
     const sp={}; for(const k of ['center','right','left','up','down']) sp[k]=await upload(user.id,'face-'+k,shots[k]);
     const {error:pe}=await sb.from('profiles').upsert({
       id:user.id,email,contact_email:oauthUser.email,provider:((oauthUser.app_metadata||{}).provider||'oauth'),full_name:$('#s-name').value.trim(),phone:$('#s-phone').value,national_id:nid,
-      gender:val('gender'),role:val('role'),governorate:$('#s-gov').value,city:$('#s-city').value.trim(),
+      gender:val('gender'),role:val('role'),vehicle_type:val('role')==='driver'?val('vehicle'):null,governorate:$('#s-gov').value,city:$('#s-city').value.trim(),
       address:$('#s-addr').value.trim(),id_front:front,id_back:back,selfie:sp.center,selfie_center:sp.center,selfie_right:sp.right,selfie_left:sp.left,selfie_up:sp.up,selfie_down:sp.down,
       id_check:{...idCheck,face:{poses:order},checked_at:new Date().toISOString()},status:'pending'
     });
