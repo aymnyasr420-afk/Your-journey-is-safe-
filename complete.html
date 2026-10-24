@@ -140,6 +140,22 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
 .busy.show{display:flex}
 .spin{width:44px;height:44px;border-radius:50%;border:4px solid #ffffff44;border-top-color:#fff;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+#id-frame{transition:border-color .15s}
+#id-frame.ok{border-color:#2fd16f;box-shadow:0 0 0 100vmax rgba(0,0,0,.55),0 0 22px #2fd16f}
+.bdbtn{width:100%;height:52px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:15px;color:#8a94ab;padding:0 44px;text-align:right;cursor:pointer}
+.bdbtn.has{color:var(--ink);font-weight:600}
+.dp{position:fixed;inset:0;z-index:160;background:rgba(8,20,50,.5);display:none;align-items:flex-end}
+.dp.show{display:flex}
+.dsheet{background:#fff;width:100%;max-width:640px;margin:0 auto;border-radius:22px 22px 0 0;padding:14px 18px calc(16px + env(safe-area-inset-bottom))}
+.dsh-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.dsh-h b{font-size:17px;font-weight:800;color:var(--navy)}
+.dsh-h button{background:none;border:0;font:inherit;font-size:16px;font-weight:700;cursor:pointer;color:var(--mut)}
+.dsh-h button.ok{color:var(--blue)}
+.dwheels{position:relative;display:grid;grid-template-columns:1fr 1.5fr 1.1fr;height:180px;gap:4px}
+.dwheels::before{content:"";position:absolute;left:0;right:0;top:72px;height:36px;background:var(--field);border-radius:10px}
+.wl{position:relative;height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;padding:72px 0;-webkit-mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent);mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent)}
+.wl::-webkit-scrollbar{display:none}
+.wl div{height:36px;line-height:36px;text-align:center;scroll-snap-align:center;font-size:19px;font-weight:700;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -212,6 +228,8 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
 
     <!-- 3 العنوان -->
     <div class="step hidden" data-s="3">
+      <label class="lb">تاريخ الميلاد</label>
+      <div class="field"><span class="ic" data-i="cal"></span><button type="button" class="bdbtn" id="s-bd">اختر تاريخ الميلاد</button></div>
       <label class="lb">المحافظة</label>
       <div class="field"><span class="ic" data-i="pin"></span><select id="s-gov"></select></div>
       <label class="lb">المدينة / المنطقة</label>
@@ -250,7 +268,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
 <div class="modal" id="id-modal">
   <div class="stage" id="id-stage"><video id="id-video" playsinline muted></video><div id="id-frame"></div>
     <div class="m-top" id="id-title">صوّر البطاقة</div>
-    <div class="m-note">ضع البطاقة داخل الإطار</div></div>
+    <div class="m-note" id="id-note">ضع البطاقة داخل الإطار</div></div>
   <div class="m-bot"><button type="button" class="m-cancel" id="id-cancel">إلغاء</button><button type="button" class="shutter" id="id-snap" aria-label="التقاط"></button><span class="m-cancel" style="visibility:hidden">إلغاء</span></div>
 </div>
 <div class="modal" id="face-modal">
@@ -259,6 +277,10 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
     <div class="m-note big" id="face-txt"></div><div class="dots" id="face-dots"></div></div>
   <div class="m-bot"><button type="button" class="m-cancel" id="face-cancel">إلغاء</button></div>
 </div>
+<div class="dp" id="dp"><div class="dsheet">
+  <div class="dsh-h"><button type="button" id="dp-x">إلغاء</button><b>تاريخ الميلاد</b><button type="button" class="ok" id="dp-ok">تم</button></div>
+  <div class="dwheels"><div class="wl" id="w-d"></div><div class="wl" id="w-m"></div><div class="wl" id="w-y"></div></div>
+</div></div>
 <div class="hm" id="hm"><div class="hbox"><h3 id="hm-t"></h3><ul id="hm-l"></ul><button type="button" class="btn" id="hm-x" style="width:100%">تمام</button></div></div>
 <div class="busy" id="busy"><div class="spin"></div><p id="busy-t">جاري الفحص...</p></div>
 
@@ -287,6 +309,7 @@ const ICONS = {
   back:S('<path d="M9 5l7 7-7 7"/>'),
   mail:S('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'),
   check:S('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+  cal:S('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
   male:S('<circle cx="10" cy="14" r="5"/><path d="M14 10l6-6M15 4h5v5"/>'),
   female:S('<circle cx="12" cy="9" r="5"/><path d="M12 14v7M9 18h6"/>'),
   car:S('<path d="M5 16v-5l2-5h10l2 5v5M3 16h18M7 19v-3M17 19v-3"/><circle cx="8" cy="13" r=".8"/><circle cx="16" cy="13" r=".8"/>'),
@@ -353,8 +376,8 @@ const LABELS=['البيانات','الهوية','العنوان','التحقق',
 const INTRO={1:['user','بياناتك الأساسية'],2:['id','التحقق من الهوية'],3:['pin','عنوانك'],4:['cam','التحقق من الوجه'],5:['check','تمام']};
 const HELP={
   1:['بياناتك الأساسية',['اكتب الاسم ثلاثي زي ما في البطاقة.','البريد ورقم الهاتف بيتاخدوا من حسابك لو متاحين، ولو الهاتف فاضي اكتبه.','اختار النوع ونوع الحساب (عميل أو سائق).','لو اخترت سائق، اختار مركبتك: سيارة أو تيك توك أو موتوسيكل.']],
-  2:['التحقق من الهوية',['اكتب الرقم القومي الصحيح ويطابق النوع.','صوّر الوجه الأمامي والخلفي للبطاقة بالكاميرا، كاملة وواضحة.','اختار كلمة مرور 8 أحرف على الأقل فيها حروف وأرقام.']],
-  3:['عنوانك',['اختار المحافظة.','اكتب المدينة أو المنطقة.','اكتب العنوان بالتفصيل: الشارع ورقم المبنى.']],
+  2:['التحقق من الهوية',['اكتب الرقم القومي الصحيح ويطابق النوع.','صوّر الوجه الأمامي والخلفي للبطاقة بالكاميرا. لما الإطار يبقى أخضر هتتصور تلقائي.','اختار كلمة مرور 8 أحرف على الأقل فيها حروف وأرقام.']],
+  3:['عنوانك',['اختار تاريخ الميلاد من العجلات، ولازم يطابق الرقم القومي.','اختار المحافظة.','اكتب المدينة أو المنطقة.','اكتب العنوان بالتفصيل: الشارع ورقم المبنى.']],
   4:['التحقق من الوجه',['اضغط ابدأ واسمح للكاميرا.','خلي وشك جوه الدايرة واتبع الأسهم لتحريك راسك.','لازم الـ 5 صور يكتملوا، وبعدها وافق على الشروط واضغط إنشاء الحساب.']],
   5:['تمام',['تم حفظ بياناتك، وحسابك قيد مراجعة الهوية.']]
 };
@@ -403,6 +426,8 @@ function validate(n){
     if($('#s-pass').value!==$('#s-pass2').value) return 'كلمتا المرور غير متطابقتين';
   }
   if(n===3){
+    if(!birthISO) return 'اختار تاريخ الميلاد';
+    if(birthISO!==nidBirth($('#s-nid').value)) return 'تاريخ الميلاد لا يطابق الرقم القومي';
     if(!$('#s-gov').value) return 'اختر المحافظة';
     if(!$('#s-city').value.trim()) return 'اكتب المدينة أو المنطقة';
     if($('#s-addr').value.trim().length<6) return 'اكتب العنوان بالتفصيل';
@@ -425,7 +450,7 @@ $('#s-submit').onclick=async()=>{
     const sp={}; for(const k of ['center','right','left','up','down']) sp[k]=await upload(user.id,'face-'+k,shots[k]);
     const {error:pe}=await sb.from('profiles').upsert({
       id:user.id,email,contact_email:oauthUser.email,provider:((oauthUser.app_metadata||{}).provider||'oauth'),full_name:$('#s-name').value.trim(),phone:$('#s-phone').value,national_id:nid,
-      gender:val('gender'),role:val('role'),vehicle_type:val('role')==='driver'?val('vehicle'):null,governorate:$('#s-gov').value,city:$('#s-city').value.trim(),
+      gender:val('gender'),birth_date:birthISO,role:val('role'),vehicle_type:val('role')==='driver'?val('vehicle'):null,governorate:$('#s-gov').value,city:$('#s-city').value.trim(),
       address:$('#s-addr').value.trim(),id_front:front,id_back:back,selfie:sp.center,selfie_center:sp.center,selfie_right:sp.right,selfie_left:sp.left,selfie_up:sp.up,selfie_down:sp.down,
       id_check:{...idCheck,face:{poses:order},checked_at:new Date().toISOString()},status:'pending'
     });
@@ -465,21 +490,60 @@ async function startID(key){
   idKey=key;
   $('#id-title').textContent=key==='front'?'صوّر الوجه الأمامي للبطاقة':'صوّر الوجه الخلفي للبطاقة';
   $('#id-modal').classList.add('show');
-  try{ await getCam(idVideo,'environment'); }catch(err){ closeID(); msg($('#s-msg'),err.message); }
+  try{ await getCam(idVideo,'environment'); idRun=true; idOk=0; requestAnimationFrame(idLoop); }catch(err){ closeID(); msg($('#s-msg'),err.message); }
 }
-function closeID(){ stopCam(idVideo); $('#id-modal').classList.remove('show'); }
+function closeID(){ idRun=false; $('#id-frame').classList.remove('ok'); stopCam(idVideo); $('#id-modal').classList.remove('show'); }
 $('#id-cancel').onclick=closeID;
 $('#pic-front').onclick=()=>startID('front'); $('#pic-back').onclick=()=>startID('back');
-$('#id-snap').onclick=async()=>{
+function idRect(k){
   const v=idVideo, st=$('#id-stage').getBoundingClientRect(), fr=$('#id-frame').getBoundingClientRect();
-  if(!v.videoWidth) return;
   const sc=Math.max(st.width/v.videoWidth,st.height/v.videoHeight);
   const ox=(v.videoWidth*sc-st.width)/2, oy=(v.videoHeight*sc-st.height)/2;
-  const sx=(fr.left-st.left+ox)/sc, sy=(fr.top-st.top+oy)/sc, sw=fr.width/sc, sh=fr.height/sc;
+  let sx=(fr.left-st.left+ox)/sc, sy=(fr.top-st.top+oy)/sc, sw=fr.width/sc, sh=fr.height/sc;
+  if(k&&k!==1){ sx-=sw*(k-1)/2; sy-=sh*(k-1)/2; sw*=k; sh*=k; }
+  return {sx,sy,sw,sh};
+}
+async function snapID(){
+  const v=idVideo; if(!v.videoWidth||!idRun) return; idRun=false;
+  const {sx,sy,sw,sh}=idRect(1);
   const c=document.createElement('canvas'); c.width=Math.min(1400,Math.round(sw)); c.height=Math.round(c.width*sh/sw);
   c.getContext('2d').drawImage(v,sx,sy,sw,sh,0,0,c.width,c.height);
   const key=idKey; closeID(); await verifyID(c,key);
-};
+}
+$('#id-snap').onclick=snapID;
+
+/* ===== كشف البطاقة تلقائي: الإطار يبقى أخضر ويتصور لوحده ===== */
+const ID_EDGE=2.0, ID_SHARP=35, ID_HOLD=6;   // لو بيتصور بسهولة/صعوبة زيادة عدّل الأرقام دي
+let idRun=false, idOk=0, idLast=0;
+const dc=document.createElement('canvas'); dc.width=240; dc.height=151;
+const dx=dc.getContext('2d',{willReadFrequently:true});
+function idLooksGood(){
+  const v=idVideo; if(!v.videoWidth) return false;
+  const W=240,H=151, r=idRect(1.2);
+  dx.drawImage(v,r.sx,r.sy,r.sw,r.sh,0,0,W,H);
+  const d=dx.getImageData(0,0,W,H).data, g=new Float32Array(W*H);
+  for(let i=0;i<W*H;i++) g[i]=d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11;
+  const gx=new Float32Array(W*H), gy=new Float32Array(W*H); let gm=0,n=0;
+  for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++){ const i=y*W+x; gx[i]=Math.abs(g[i+1]-g[i-1]); gy[i]=Math.abs(g[i+W]-g[i-W]); gm+=gx[i]+gy[i]; n++; }
+  gm/=n;
+  let s1=0,s2=0,c=0;
+  for(let y=Math.floor(H*.25);y<H*.75;y++) for(let x=Math.floor(W*.25);x<W*.75;x++){ const i=y*W+x, l=4*g[i]-g[i-1]-g[i+1]-g[i-W]-g[i+W]; s1+=l; s2+=l*l; c++; }
+  if(s2/c-(s1/c)*(s1/c)<ID_SHARP) return false;           // صورة مهزوزة
+  const mx=Math.round(W*.0833), my=Math.round(H*.0833), B=5, x0=Math.floor(W*.2), x1=Math.floor(W*.8), y0=Math.floor(H*.2), y1=Math.floor(H*.8);
+  const rowPeak=yc=>{ let b=0; for(let y=yc-B;y<=yc+B;y++){ let a=0; for(let x=x0;x<x1;x++) a+=gy[y*W+x]; a/=(x1-x0); if(a>b) b=a; } return b; };
+  const colPeak=xc=>{ let b=0; for(let x=xc-B;x<=xc+B;x++){ let a=0; for(let y=y0;y<y1;y++) a+=gx[y*W+x]; a/=(y1-y0); if(a>b) b=a; } return b; };
+  return Math.min(rowPeak(my),rowPeak(H-1-my),colPeak(mx),colPeak(W-1-mx))/(gm+2)>=ID_EDGE;   // حواف البطاقة الأربعة على الإطار
+}
+function idLoop(t){
+  if(!idRun) return;
+  if(t-idLast>110){
+    idLast=t; const ok=idLooksGood();
+    $('#id-frame').classList.toggle('ok',ok); idOk=ok?idOk+1:0;
+    $('#id-note').textContent=ok?'ثبّت البطاقة...':'ضع البطاقة داخل الإطار';
+    if(idOk>=ID_HOLD){ snapID(); return; }
+  }
+  requestAnimationFrame(idLoop);
+}
 let ocrW=null;
 async function ocr(c){
   if(!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
@@ -593,6 +657,44 @@ async function upload(uid,name,blob){
   if(error) throw new Error('فشل رفع الصورة');
   return path;
 }
+
+/* ===== تاريخ الميلاد: عجلات زي الايفون ===== */
+const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const nidBirth=n=>`${(n[0]==='2'?1900:2000)+ +n.slice(1,3)}-${n.slice(3,5)}-${n.slice(5,7)}`;
+let birthISO='', bd={d:1,m:1,y:2000};
+const wD=$('#w-d'), wM=$('#w-m'), wY=$('#w-y'), IH=36, pad=n=>String(n).padStart(2,'0');
+const thisY=new Date().getFullYear(), yearsArr=[]; for(let y=thisY-18;y>=thisY-80;y--) yearsArr.push(y);
+const fillW=(el,arr)=>{ el.innerHTML=arr.map(t=>`<div>${t}</div>`).join(''); };
+const dim=(y,m)=>new Date(y,m,0).getDate();
+function fillDays(){ const n=dim(bd.y,bd.m); fillW(wD,Array.from({length:n},(_,i)=>i+1)); if(bd.d>n) bd.d=n; }
+fillW(wM,MONTHS); fillW(wY,yearsArr); fillDays();
+const idxOf=el=>Math.round(el.scrollTop/IH);
+function setWheels(){ fillDays(); wD.scrollTop=(bd.d-1)*IH; wM.scrollTop=(bd.m-1)*IH; wY.scrollTop=Math.max(0,yearsArr.indexOf(bd.y))*IH; }
+let wTmr;
+function onWheel(){
+  clearTimeout(wTmr);
+  wTmr=setTimeout(()=>{
+    const m=Math.min(12,Math.max(1,idxOf(wM)+1)), y=yearsArr[Math.min(yearsArr.length-1,Math.max(0,idxOf(wY)))], prevD=Math.max(1,idxOf(wD)+1);
+    const changed=(m!==bd.m||y!==bd.y); bd.m=m; bd.y=y; bd.d=Math.min(prevD,dim(y,m));
+    if(changed){ fillDays(); wD.scrollTop=(bd.d-1)*IH; }
+  },90);
+}
+[wD,wM,wY].forEach(w=>w.addEventListener('scroll',onWheel,{passive:true}));
+$('#s-bd').onclick=()=>{
+  const n=$('#s-nid').value;
+  if(!birthISO&&/^\d{14}$/.test(n)&&!checkNID(n)){ const [y,m,d]=nidBirth(n).split('-').map(Number); if(yearsArr.includes(y)) bd={d,m,y}; }
+  else if(birthISO){ const [y,m,d]=birthISO.split('-').map(Number); bd={d,m,y}; }
+  $('#dp').classList.add('show'); setWheels();
+};
+$('#dp-x').onclick=()=>$('#dp').classList.remove('show');
+$('#dp').onclick=e=>{ if(e.target.id==='dp') $('#dp').classList.remove('show'); };
+$('#dp-ok').onclick=()=>{
+  setTimeout(()=>{
+    birthISO=`${bd.y}-${pad(bd.m)}-${pad(bd.d)}`;
+    $('#s-bd').textContent=`${bd.d} ${MONTHS[bd.m-1]} ${bd.y}`; $('#s-bd').classList.add('has');
+    $('#dp').classList.remove('show');
+  },120);
+};
 
 /* ============ تشغيل الصفحة: قراءة الجلسة وتعبئة البيانات ============ */
 goStep(1);
