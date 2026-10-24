@@ -161,7 +161,8 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
 .m-bot{padding:14px 16px calc(16px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:center;background:#000}
 .m-cancel{min-width:70px;color:#fff;background:none;border:0;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
 .shutter{width:68px;height:68px;border-radius:50%;border:4px solid #fff;background:var(--blue);cursor:pointer}
-#id-frame{position:absolute;left:50%;top:50%;width:min(90%,620px);aspect-ratio:1.586;transform:translate(-50%,-50%);border:3px solid #fff;border-radius:14px;box-shadow:0 0 0 100vmax rgba(0,0,0,.55);z-index:2}
+#id-frame{position:absolute;left:50%;top:50%;width:min(90%,620px);aspect-ratio:1.586;transform:translate(-50%,-50%);border:3px solid #fff;border-radius:14px;box-shadow:0 0 0 100vmax rgba(0,0,0,.55);z-index:2;transition:border-color .15s}
+#id-frame.ok{border-color:#2fd16f;box-shadow:0 0 0 100vmax rgba(0,0,0,.55),0 0 22px #2fd16f}
 #face-oval{position:absolute;left:50%;top:44%;width:min(68%,300px);aspect-ratio:3/4;transform:translate(-50%,-50%);border:4px solid #fff;border-radius:50%;box-shadow:0 0 0 100vmax rgba(0,0,0,.6);z-index:2;transition:border-color .15s}
 #face-oval.ok{border-color:#2fd16f}
 .dots{position:absolute;left:0;right:0;bottom:20px;z-index:3;display:flex;justify-content:center;gap:8px}
@@ -226,7 +227,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
       <div id="l-msg" class="msg"></div>
       <div class="field">
         <span class="ic" id="l-ic" data-i="id"></span>
-        <input id="l-id" inputmode="numeric" autocomplete="username" maxlength="14" placeholder="الرقم القومي">
+        <input id="l-id" inputmode="numeric" autocomplete="username" placeholder="الرقم القومي">
       </div>
       <div class="field">
         <span class="ic" data-i="lock"></span>
@@ -264,7 +265,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
         <label class="lb">البريد الإلكتروني <span style="color:var(--err)">*</span></label>
         <div class="field"><span class="ic" data-i="mail"></span><input id="s-email" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" style="direction:ltr;text-align:right"></div>
         <label class="lb">رقم الهاتف</label>
-        <div class="field"><span class="ic" data-i="phone"></span><input id="s-phone" inputmode="numeric" maxlength="11" placeholder="01012345678"></div>
+        <div class="field"><span class="ic" data-i="phone"></span><input id="s-phone" inputmode="numeric" placeholder="01012345678"></div>
         <label class="lb">النوع</label>
         <div class="radios">
           <label><input type="radio" name="gender" value="male" checked> ذكر</label>
@@ -281,7 +282,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
       <!-- 2 الهوية -->
       <div class="step hidden" data-s="2">
         <label class="lb">ادخل رقمك القومي</label>
-        <div class="field"><span class="ic" data-i="id"></span><input id="s-nid" inputmode="numeric" maxlength="14" placeholder="14 رقم"></div>
+        <div class="field"><span class="ic" data-i="id"></span><input id="s-nid" inputmode="numeric" placeholder="14 رقم"></div>
         <div class="hint" id="nid-hint">يجب أن يكون الرقم القومي صحيحًا ومطابقًا للنوع</div>
         <div class="idbox">
           <div class="t"><span data-i="card" style="display:flex"></span>صورة الهوية</div>
@@ -339,7 +340,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
 <div class="modal" id="id-modal">
   <div class="stage" id="id-stage"><video id="id-video" playsinline muted></video><div id="id-frame"></div>
     <div class="m-top" id="id-title">صوّر البطاقة</div>
-    <div class="m-note">ضع البطاقة الأصلية كلها داخل الإطار، في إضاءة كويسة وبدون انعكاس</div></div>
+    <div class="m-note" id="id-note">ضع البطاقة الأصلية كلها داخل الإطار، في إضاءة كويسة وبدون انعكاس</div></div>
   <div class="m-bot"><button type="button" class="m-cancel" id="id-cancel">إلغاء</button><button type="button" class="shutter" id="id-snap" aria-label="التقاط"></button><span class="m-cancel" style="visibility:hidden">إلغاء</span></div>
 </div>
 <div class="modal" id="face-modal">
@@ -385,7 +386,12 @@ $$('[data-eye]').forEach(b=>{
 
 /* ============ أدوات ============ */
 function msg(el,text,ok){ el.textContent=text||''; el.className='msg'+(text?' show':'')+(ok?' okm':''); }
-['l-id','s-phone','s-nid'].forEach(id=>$('#'+id).addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,''); }));
+/* الأرقام العربية (٠١٢٣) والإنجليزي (0123) الاتنين يشتغلوا، والإملاء الصوتي كمان */
+const toLatin=t=>t.replace(/[\u0660-\u0669]/g,d=>d.charCodeAt(0)-1632).replace(/[\u06F0-\u06F9]/g,d=>d.charCodeAt(0)-1776);
+['l-id','s-phone','s-nid'].forEach(id=>$('#'+id).addEventListener('input',e=>{
+  const n=id==='s-phone'?11:id==='s-nid'?14:(role==='client'?14:11);
+  e.target.value=toLatin(e.target.value).replace(/\D/g,'').slice(0,n);
+}));
 
 const GOVS={"01":"القاهرة","02":"الإسكندرية","03":"بورسعيد","04":"السويس","11":"دمياط","12":"الدقهلية","13":"الشرقية","14":"القليوبية","15":"كفر الشيخ","16":"الغربية","17":"المنوفية","18":"البحيرة","19":"الإسماعيلية","21":"الجيزة","22":"بني سويف","23":"الفيوم","24":"المنيا","25":"أسيوط","26":"سوهاج","27":"قنا","28":"أسوان","29":"الأقصر","31":"البحر الأحمر","32":"الوادي الجديد","33":"مطروح","34":"شمال سيناء","35":"جنوب سيناء","88":"خارج الجمهورية"};
 $('#s-gov').innerHTML='<option value="">اختر المحافظة</option>'+Object.values(GOVS).filter(g=>g!=="خارج الجمهورية").map(g=>`<option>${g}</option>`).join('');
@@ -433,7 +439,6 @@ function setRole(r){
   role=r; $('#t-client').classList.toggle('on',r==='client'); $('#t-driver').classList.toggle('on',r==='driver');
   const i=$('#l-id'); i.value='';
   i.placeholder=r==='client'?'الرقم القومي':'رقم الهاتف';
-  i.maxLength=r==='client'?14:11;
   $('#l-ic').innerHTML=r==='client'?ICONS.id:ICONS.phone;
   msg($('#l-msg'));
 }
@@ -575,7 +580,7 @@ $('#s-submit').onclick=async()=>{
 };
 
 /* ============ الكاميرا + فحص البطاقة + بصمة الوجه ============ */
-const MIN_ID_MATCH=12;                 // أقل عدد أرقام متطابقة من 14 (قراءة OCR)
+const MIN_ID_MATCH=10;                 // أقل عدد أرقام متطابقة من 14 (قراءة OCR)
 const YAW_T=0.14, PITCH_T=0.06, HOLD=6; // حساسية لفّة الراس وعدد الفريمات الثابتة
 const BACK_WORDS=['الحالة','الاجتماعية','المهنة','الديانة','الزوج','تاريخ','الإصدار','الاصدار','انتهاء','الانتهاء','مسلم','مسيحي','أعزب','متزوج','وزارة','الداخلية','أرمل','مطلق'];
 const POSE_LBL={center:'الأمام',right:'اليمين',left:'الشمال',up:'فوق',down:'تحت'};
@@ -603,26 +608,83 @@ async function startID(key){
   idKey=key;
   $('#id-title').textContent=key==='front'?'صوّر الوجه الأمامي للبطاقة':'صوّر الوجه الخلفي للبطاقة';
   $('#id-modal').classList.add('show');
-  try{ await getCam(idVideo,'environment'); }catch(err){ closeID(); msg($('#s-msg'),err.message); }
+  try{ await getCam(idVideo,'environment'); idRun=true; idOk=0; requestAnimationFrame(idLoop); }catch(err){ closeID(); msg($('#s-msg'),err.message); }
 }
-function closeID(){ stopCam(idVideo); $('#id-modal').classList.remove('show'); }
+function closeID(){ idRun=false; $('#id-frame').classList.remove('ok'); stopCam(idVideo); $('#id-modal').classList.remove('show'); }
 $('#id-cancel').onclick=closeID;
 $('#pic-front').onclick=()=>startID('front'); $('#pic-back').onclick=()=>startID('back');
-$('#id-snap').onclick=async()=>{
+function idRect(k){
   const v=idVideo, st=$('#id-stage').getBoundingClientRect(), fr=$('#id-frame').getBoundingClientRect();
-  if(!v.videoWidth) return;
   const sc=Math.max(st.width/v.videoWidth,st.height/v.videoHeight);
   const ox=(v.videoWidth*sc-st.width)/2, oy=(v.videoHeight*sc-st.height)/2;
-  const sx=(fr.left-st.left+ox)/sc, sy=(fr.top-st.top+oy)/sc, sw=fr.width/sc, sh=fr.height/sc;
+  let sx=(fr.left-st.left+ox)/sc, sy=(fr.top-st.top+oy)/sc, sw=fr.width/sc, sh=fr.height/sc;
+  if(k&&k!==1){ sx-=sw*(k-1)/2; sy-=sh*(k-1)/2; sw*=k; sh*=k; }
+  return {sx,sy,sw,sh};
+}
+async function snapID(){
+  const v=idVideo; if(!v.videoWidth||!idRun) return; idRun=false;
+  const {sx,sy,sw,sh}=idRect(1);
   const c=document.createElement('canvas'); c.width=Math.min(1400,Math.round(sw)); c.height=Math.round(c.width*sh/sw);
   c.getContext('2d').drawImage(v,sx,sy,sw,sh,0,0,c.width,c.height);
   const key=idKey; closeID(); await verifyID(c,key);
-};
+}
+$('#id-snap').onclick=snapID;
+
+/* ===== كشف البطاقة تلقائي: الإطار يبقى أخضر ويتصور لوحده ===== */
+const ID_EDGE=1.5, ID_SHARP=20, ID_HOLD=5;   // لو بيتصور بسهولة/صعوبة زيادة عدّل الأرقام دي
+const ID_NOTE=$('#id-note').textContent;
+let idRun=false, idOk=0, idLast=0;
+const dc=document.createElement('canvas'); dc.width=240; dc.height=151;
+const dx=dc.getContext('2d',{willReadFrequently:true});
+function idLooksGood(){
+  const v=idVideo; if(!v.videoWidth) return false;
+  const W=240,H=151, r=idRect(1.2);
+  dx.drawImage(v,r.sx,r.sy,r.sw,r.sh,0,0,W,H);
+  const d=dx.getImageData(0,0,W,H).data, g=new Float32Array(W*H);
+  for(let i=0;i<W*H;i++) g[i]=d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11;
+  const gx=new Float32Array(W*H), gy=new Float32Array(W*H); let gm=0,n=0;
+  for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++){ const i=y*W+x; gx[i]=Math.abs(g[i+1]-g[i-1]); gy[i]=Math.abs(g[i+W]-g[i-W]); gm+=gx[i]+gy[i]; n++; }
+  gm/=n;
+  let s1=0,s2=0,c=0;
+  for(let y=Math.floor(H*.25);y<H*.75;y++) for(let x=Math.floor(W*.25);x<W*.75;x++){ const i=y*W+x, l=4*g[i]-g[i-1]-g[i+1]-g[i-W]-g[i+W]; s1+=l; s2+=l*l; c++; }
+  if(s2/c-(s1/c)*(s1/c)<ID_SHARP) return false;           // صورة مهزوزة
+  const mx=Math.round(W*.0833), my=Math.round(H*.0833), B=5, x0=Math.floor(W*.2), x1=Math.floor(W*.8), y0=Math.floor(H*.2), y1=Math.floor(H*.8);
+  const rowPeak=yc=>{ let b=0; for(let y=yc-B;y<=yc+B;y++){ let a=0; for(let x=x0;x<x1;x++) a+=gy[y*W+x]; a/=(x1-x0); if(a>b) b=a; } return b; };
+  const colPeak=xc=>{ let b=0; for(let x=xc-B;x<=xc+B;x++){ let a=0; for(let y=y0;y<y1;y++) a+=gx[y*W+x]; a/=(y1-y0); if(a>b) b=a; } return b; };
+  const sides=[rowPeak(my),rowPeak(H-1-my),colPeak(mx),colPeak(W-1-mx)].filter(v=>v/(gm+2)>=ID_EDGE).length;
+  return sides>=3;   // 3 من 4 حواف للبطاقة على الإطار
+}
+function idLoop(t){
+  if(!idRun) return;
+  if(t-idLast>110){
+    idLast=t; const ok=idLooksGood();
+    $('#id-frame').classList.toggle('ok',ok); idOk=ok?idOk+1:0;
+    $('#id-note').textContent=ok?'ثبّت البطاقة...':ID_NOTE;
+    if(idOk>=ID_HOLD){ snapID(); return; }
+  }
+  requestAnimationFrame(idLoop);
+}
+
+/* ===== قراءة البطاقة (OCR) ===== */
 let ocrW=null;
-async function ocr(c){
+async function ocr(c,digits){
   if(!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
   if(!ocrW) ocrW=await Tesseract.createWorker('ara');
+  await ocrW.setParameters(digits
+    ?{tessedit_char_whitelist:'٠١٢٣٤٥٦٧٨٩0123456789',tessedit_pageseg_mode:'6'}
+    :{tessedit_char_whitelist:'',tessedit_pageseg_mode:'3'});
   const {data}=await ocrW.recognize(c); return data.text||'';
+}
+/* تجهيز الصورة للقراءة: قص شريط، تكبير، رمادي، رفع التباين */
+function prep(c,y0,h){
+  const w=c.width, sy=Math.round(c.height*y0), sh=Math.round(c.height*h);
+  const o=document.createElement('canvas'); o.width=Math.min(1800,w*2); o.height=Math.round(o.width*sh/w);
+  const x=o.getContext('2d'); x.drawImage(c,0,sy,w,sh,0,0,o.width,o.height);
+  const im=x.getImageData(0,0,o.width,o.height), d=im.data; let lo=255,hi=0;
+  for(let i=0;i<d.length;i+=4){ const g=d[i]*.3+d[i+1]*.59+d[i+2]*.11; d[i]=g; if(g<lo) lo=g; if(g>hi) hi=g; }
+  const k=255/Math.max(1,hi-lo);
+  for(let i=0;i<d.length;i+=4){ const g=Math.max(0,Math.min(255,(d[i]-lo)*k)); d[i]=d[i+1]=d[i+2]=g; }
+  x.putImageData(im,0,0); return o;
 }
 const latin=t=>t.replace(/[\u0660-\u0669]/g,d=>d.charCodeAt(0)-1632).replace(/[\u06F0-\u06F9]/g,d=>d.charCodeAt(0)-1776);
 function bestMatch(text,nid){
@@ -639,13 +701,15 @@ function tile(key,blob){
 async function verifyID(c,key){
   busy(true,'جاري فحص البطاقة... ممكن ياخد ثواني');
   try{
-    const text=await ocr(c);
     if(key==='front'){
-      const nid=$('#s-nid').value, sc=bestMatch(text,nid);
+      const nid=$('#s-nid').value; let sc=0;
+      for(const [y0,h] of [[.5,.5],[0,1],[.4,.4]]){
+        const t=await ocr(prep(c,y0,h),true); sc=Math.max(sc,bestMatch(t,nid)); if(sc>=MIN_ID_MATCH) break;
+      }
       if(sc<MIN_ID_MATCH) throw new Error('الرقم القومي في الصورة مش واضح أو مش مطابق للرقم اللي كتبته. صوّر الوجه الأمامي للبطاقة الأصلية كاملة، في إضاءة كويسة وبدون انعكاس.');
       verifiedNid=nid; idCheck.front={match:sc};
     }else{
-      const t=text.replace(/\s+/g,' '), hits=BACK_WORDS.filter(w=>t.includes(w)).length;
+      const text=await ocr(c,false), t=text.replace(/\s+/g,' '), hits=BACK_WORDS.filter(w=>t.includes(w)).length;
       if(hits<1) throw new Error('الصورة دي مش شبه الوجه الخلفي لبطاقة الرقم القومي. صوّر الخلفي كامل وواضح.');
       idCheck.back={hits};
     }
