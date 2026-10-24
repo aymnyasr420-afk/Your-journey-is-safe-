@@ -261,7 +261,7 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
         <label class="lb">الاسم الكامل</label>
         <div class="field" id="name-f"><span class="ic" data-i="user"></span><input id="s-name" autocomplete="name" placeholder="الاسم كما في البطاقة"></div>
         <div class="hint hidden" id="name-hint"></div>
-        <label class="lb">البريد الإلكتروني <span style="color:var(--mut);font-weight:600">(اختياري)</span></label>
+        <label class="lb">البريد الإلكتروني <span style="color:var(--err)">*</span></label>
         <div class="field"><span class="ic" data-i="mail"></span><input id="s-email" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" style="direction:ltr;text-align:right"></div>
         <label class="lb">رقم الهاتف</label>
         <div class="field"><span class="ic" data-i="phone"></span><input id="s-phone" inputmode="numeric" maxlength="11" placeholder="01012345678"></div>
@@ -522,7 +522,7 @@ function validate(n){
   if(n===1){
     if(oauthUser){ const ni=nameIssue($('#s-name').value); if(ni) return ni; }
     else if($('#s-name').value.trim().split(/\s+/).length<3) return 'اكتب الاسم الثلاثي على الأقل';
-    const em=$('#s-email').value.trim(); if(em&&!EMAIL_RE.test(em)) return 'البريد الإلكتروني غير صحيح (أو سيبه فاضي لأنه اختياري)';
+    const em=$('#s-email').value.trim(); if(!em||!EMAIL_RE.test(em)) return 'اكتب بريدك الإلكتروني بشكل صحيح (إجباري)';
     if(!checkPhone($('#s-phone').value)) return 'رقم الهاتف غير صحيح (مثال: 01012345678)';
   }
   if(n===2){
