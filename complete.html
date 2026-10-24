@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>إكمال الحساب | RideNow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --blue:#1a6fe0; --blue-d:#1257b8; --navy:#0f2a5c; --ink:#16213a; --mut:#6b7690;
+  --line:#d9e0ec; --field:#f3f6fb; --ok:#1a8f4c; --err:#d63838;
+  --bg-image:url("https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/982a04a8-1151-4c56-89a3-d334398558a3.jpg"); /* غيّر صورة الخلفية هنا */
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:"Cairo",system-ui,sans-serif;color:var(--ink);background:var(--navy);direction:rtl}
+
+/* الخلفية ثابتة ما بتتحركش */
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:linear-gradient(180deg,#27457f 0%,#14305f 55%,#0b1d40 100%)}
+/* طبقة تحت: نفس الصورة مغطية الشاشة ومغبشة عشان تملّا الأطراف */
+.bg::before{content:"";position:absolute;inset:-30px;background:var(--bg-image) center/cover no-repeat;filter:blur(24px)}
+/* الفيديو فوق الصورة: لو الفيديو ما اشتغلش الصورة المغبشة تفضل ظاهرة */
+.bg video{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+/* طبقة تحت: نفس الفيديو مغطي الشاشة ومغبش جامد عشان يملّا الأطراف */
+.bg video.fill{object-fit:cover;filter:blur(26px);transform:scale(1.25)}
+/* طبقة فوق: الفيديو كامل بدون أي قص */
+.bg video.main{object-fit:contain;object-position:center top;filter:blur(1px)}
+.bg::after{content:"";position:absolute;inset:0;background:rgba(15,42,92,.28)}
+
+.screen{min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-end}
+.brand{display:flex;flex-direction:column;align-items:center;padding:clamp(12px,3dvh,28px) 16px clamp(12px,2.5dvh,22px);color:#fff;text-align:center}
+.brand img{width:clamp(80px,15dvh,140px);height:clamp(80px,15dvh,140px);object-fit:contain;background:none;border:0}
+.brand h1{font-size:clamp(26px,4dvh,34px);font-weight:800;margin-top:4px;line-height:1.3;letter-spacing:.5px}
+.brand p{font-size:17px;font-weight:600;opacity:.95}
+.brand .side-text{display:none}
+
+/* الصندوق لازق من تحت ومن الجنبين (موبايل) */
+.card{background:#fff;width:100%;border-radius:28px 28px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));
+  box-shadow:0 -10px 30px rgba(8,20,50,.25)}
+.card h2{font-size:21px;font-weight:800;text-align:center;margin-bottom:16px}
+
+.tabs{display:flex;background:var(--field);border-radius:12px;padding:4px;margin-bottom:16px}
+.tabs button{flex:1;border:0;background:transparent;font:inherit;font-weight:700;padding:10px;border-radius:9px;color:var(--mut);cursor:pointer}
+.tabs button.on{background:var(--blue);color:#fff}
+
+.field{position:relative;margin-bottom:12px}
+.field input,.field select{width:100%;height:50px;border:1.5px solid var(--line);border-radius:12px;background:var(--field);
+  font:inherit;font-size:15px;color:var(--ink);padding:0 44px;text-align:right;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(--blue);background:#fff}
+.field input::placeholder{color:#8a94ab}
+.field .ic{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:var(--mut);display:flex;pointer-events:none}
+.field .eye{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;background:none;color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.field .eye svg,.field .ic svg{width:20px;height:20px}
+label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
+.hint{font-size:12.5px;color:var(--mut);margin:-4px 0 12px;min-height:18px}
+.hint.bad{color:var(--err)} .hint.good{color:var(--ok)}
+
+.btn{width:100%;height:50px;border:0;border-radius:12px;background:var(--blue);color:#fff;font:inherit;font-size:17px;font-weight:700;cursor:pointer;margin-top:6px}
+.btn:hover{background:var(--blue-d)} .btn:disabled{opacity:.6;cursor:wait}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:600;margin-top:10px}
+.btn.ghost:hover{background:var(--field)}
+.btn.ghost svg{width:22px;height:22px}
+.link{background:none;border:0;font:inherit;color:var(--blue);font-weight:700;cursor:pointer}
+.foot{text-align:center;font-size:14px;color:var(--mut);margin-top:16px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.nav .btn,.nav .bk2{width:auto;height:42px;min-width:96px;padding:0 22px;margin:0;font-size:15px;border-radius:11px}
+.nav .bk2{background:#fff;border:1.5px solid var(--line);color:var(--mut);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.nav .bk2:hover{background:var(--field)}
+.nav .sp2{min-width:96px}
+
+.msg{display:none;padding:10px 12px;border-radius:10px;font-size:14px;margin-bottom:12px;background:#fdeaea;color:var(--err);font-weight:600}
+.msg.show{display:block} .msg.okm{background:#e6f6ec;color:var(--ok)}
+
+/* هيدر الخطوات */
+.top{background:var(--navy);margin:-22px -20px 16px;padding:14px 16px 12px;border-radius:28px 28px 0 0;color:#fff}
+.top .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.top .row b{font-size:18px;flex:1;text-align:center}
+.top .bk{width:32px;height:32px;border:0;background:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.top .bk svg{width:22px;height:22px}
+.top .sp{width:32px}
+.steps{display:flex;justify-content:space-between;position:relative}
+.steps::before{content:"";position:absolute;top:13px;right:10%;left:10%;height:2px;background:#2d4a85;z-index:0}
+.st{flex:1;text-align:center;position:relative;font-size:11px;color:#b9c6e4}
+.st i{position:relative;z-index:1;display:flex;width:27px;height:27px;border-radius:50%;margin:0 auto 4px;background:#2d4a85;color:#fff;align-items:center;justify-content:center;font-style:normal;font-weight:700;font-size:13px}
+.st.on{color:#fff;font-weight:700} .st.on i{background:var(--blue);box-shadow:0 0 0 4px var(--navy),0 0 0 6px var(--blue)}
+.st.done{color:#fff} .st.done i{background:var(--ok)}
+
+.radios{display:flex;gap:18px;margin-bottom:12px}
+.radios label{display:flex;align-items:center;gap:7px;font-weight:600;cursor:pointer}
+.radios input{accent-color:var(--blue);width:18px;height:18px}
+
+.idbox{border:1.5px dashed var(--line);border-radius:14px;background:var(--field);padding:10px;margin-bottom:12px}
+.idbox .t{font-size:13.5px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.idbox .t svg{width:18px;height:18px;color:var(--blue)}
+.pics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pic{height:96px;border-radius:10px;background:#fff;border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mut);font-size:12.5px;font-weight:600;cursor:pointer;overflow:hidden;position:relative}
+.pic svg{width:26px;height:26px;color:var(--blue)}
+.pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pic input{display:none}
+
+.prov{display:flex;align-items:center;gap:10px;background:#eef4ff;border:1.5px solid #cddfff;border-radius:14px;padding:10px 12px;margin-bottom:12px}
+.prov .av{width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;overflow:hidden;flex:none}
+.prov .av img{width:100%;height:100%;object-fit:cover}
+.prov .pi{flex:1;min-width:0;line-height:1.45}
+.prov .pi b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prov .pi small{display:block;color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext}
+.prov .link{font-size:13px;color:var(--err);flex:none}
+.oa .top{background:linear-gradient(135deg,#0f2a5c,#1a4fa0)}
+.field.bad input{border-color:var(--err);background:#fff6f6}
+.done-box{text-align:center;padding:10px 0}
+.done-box .ok{width:78px;height:78px;border-radius:50%;background:#e6f6ec;color:var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.done-box .ok svg{width:42px;height:42px}
+.hidden{display:none!important}
+/* شاشات قصيرة: تصغير بسيط عشان كل المحتوى يبان من غير سكرول */
+@media (max-height:800px){
+  .card{padding-top:16px;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+  .top{margin-top:-16px;padding:10px 16px 8px;margin-bottom:12px}
+  .top .row{margin-bottom:8px}
+  .card h2{margin-bottom:10px}
+  .tabs{margin-bottom:12px}
+  .field{margin-bottom:9px}
+  .field input,.field select{height:44px}
+  .btn{height:46px}
+  .btn.ghost{margin-top:8px}
+  .foot{margin-top:10px}
+  label.lb{margin:2px 0 4px}
+  .radios{margin-bottom:8px}
+  .hint{min-height:16px;margin-bottom:8px}
+  .idbox{padding:8px;margin-bottom:8px}
+  .pic{height:76px}
+  .nav{margin-top:8px}
+}
+/* في صفحة إنشاء الحساب اللوجو بيصغر شوية عشان المساحة */
+@media (max-width:1023px){
+  .screen.su .brand{padding:12px 16px 12px}
+  .screen.su .brand img{width:clamp(64px,10dvh,96px);height:clamp(64px,10dvh,96px)}
+  .screen.su .brand h1{font-size:clamp(22px,3dvh,28px);margin-top:2px}
+  .screen.su .brand p{font-size:14px}
+}
+
+.pic{font:inherit}
+.pic b{font-weight:600;font-size:12.5px}
+.pic.done{border-color:var(--ok)}
+.pic .ck{position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:flex;align-items:center;justify-content:center}
+.pic .ck svg{width:14px;height:14px;color:#fff}
+.poses{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pz{text-align:center;font-size:11.5px;font-weight:600;color:var(--mut)}
+.pz .pi{aspect-ratio:1;border-radius:10px;background:#fff;border:1.5px solid var(--line);overflow:hidden;margin-bottom:3px}
+.pz .pi img{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.pz.ok .pi{border-color:var(--ok)} .pz.ok{color:var(--ok)}
+.modal{position:fixed;inset:0;z-index:100;background:#000;display:none;flex-direction:column}
+.modal.show{display:flex}
+.stage{position:relative;flex:1;overflow:hidden}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#face-video{transform:scaleX(-1)}
+.m-top{position:absolute;top:0;left:0;right:0;z-index:3;padding:calc(14px + env(safe-area-inset-top)) 16px 20px;color:#fff;text-align:center;font-weight:800;font-size:18px;background:linear-gradient(#000b,#0000)}
+.m-note{position:absolute;left:0;right:0;bottom:16px;z-index:3;padding:0 20px;color:#fff;text-align:center;font-size:14px;font-weight:600;text-shadow:0 1px 4px #000}
+.m-note.big{font-size:20px;font-weight:800;bottom:54px}
+.m-bot{padding:14px 16px calc(16px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:center;background:#000}
+.m-cancel{min-width:70px;color:#fff;background:none;border:0;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
+.shutter{width:68px;height:68px;border-radius:50%;border:4px solid #fff;background:var(--blue);cursor:pointer}
+#id-frame{position:absolute;left:50%;top:50%;width:min(90%,620px);aspect-ratio:1.586;transform:translate(-50%,-50%);border:3px solid #fff;border-radius:14px;box-shadow:0 0 0 100vmax rgba(0,0,0,.55);z-index:2}
+#face-oval{position:absolute;left:50%;top:44%;width:min(68%,300px);aspect-ratio:3/4;transform:translate(-50%,-50%);border:4px solid #fff;border-radius:50%;box-shadow:0 0 0 100vmax rgba(0,0,0,.6);z-index:2;transition:border-color .15s}
+#face-oval.ok{border-color:#2fd16f}
+.dots{position:absolute;left:0;right:0;bottom:20px;z-index:3;display:flex;justify-content:center;gap:8px}
+.dots i{width:10px;height:10px;border-radius:50%;background:#ffffff55}
+.dots i.cur{background:#fff} .dots i.ok{background:#2fd16f}
+.arrow{position:absolute;z-index:3;width:44px;height:44px;color:#fff;display:none}
+.arrow svg{width:44px;height:44px;stroke-width:2.4}
+.arrow.a-right,.arrow.a-left,.arrow.a-up,.arrow.a-down{display:block}
+.arrow.a-right{right:6%;top:44%;transform:translateY(-50%)}
+.arrow.a-left{left:6%;top:44%;transform:translateY(-50%) rotate(180deg)}
+.arrow.a-up{left:50%;top:6%;transform:translateX(-50%) rotate(-90deg)}
+.arrow.a-down{left:50%;top:72%;transform:translateX(-50%) rotate(90deg)}
+.busy{position:fixed;inset:0;z-index:200;background:rgba(8,20,50,.8);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;font-weight:700}
+.busy.show{display:flex}
+.spin{width:44px;height:44px;border-radius:50%;border:4px solid #ffffff44;border-top-color:#fff;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* تابلت: صندوق في النص بحواف كاملة */
+@media (min-width:640px){
+  .screen{justify-content:center;align-items:center;padding:24px}
+  .brand{padding:0 0 22px}
+  .brand img{width:170px;height:170px}
+  .card{max-width:540px;border-radius:28px;padding:28px 36px;box-shadow:0 20px 50px rgba(8,20,50,.35)}
+  .top{margin:-28px -36px 20px;padding:16px 24px 14px}
+  .pic{height:120px}
+}
+/* لاب توب: شاشة منقسمة، الصندوق على اليمين بطول الشاشة */
+@media (min-width:1024px){
+  .screen{flex-direction:row-reverse;justify-content:space-between;align-items:stretch;padding:0}
+  .card{max-width:520px;width:520px;min-height:100dvh;max-height:none;border-radius:36px 0 0 36px;padding:44px 48px;display:flex;flex-direction:column;justify-content:center;box-shadow:-14px 0 40px rgba(8,20,50,.3)}
+  .top{margin:-44px -48px 24px;padding:20px 32px 16px;border-radius:36px 0 0 0}
+  .brand{flex:1;justify-content:center;padding:40px}
+  .brand img{width:230px;height:230px}
+  .brand h1{font-size:54px;margin-top:14px}
+  .brand p{font-size:24px}
+  .brand .side-text{display:block;max-width:420px;margin-top:22px;font-size:16px;line-height:1.9;opacity:.92;font-weight:400}
+}
+body:not(.ready) .card{visibility:hidden}
+</style>
+</head>
+<body>
+<div class="bg"><video class="fill" src="bg.mp4" autoplay muted loop playsinline preload="auto" disablepictureinpicture></video>
+  <video id="bgv" class="main" src="bg.mp4" autoplay muted loop playsinline preload="auto" disablepictureinpicture></video></div>
+
+<main class="screen su">
+  <section class="brand">
+    <!-- الشعار صورة: استبدل src بمسار صورتك مثل logo.png -->
+    <img id="logo" alt="RideNow" src="logo.png">
+    <h1>RideNow</h1>
+    <p>رحلتك بأمان</p>
+    <p class="side-text">سجّل دخولك أو أنشئ حسابك بخطوات بسيطة، وتحقق من هويتك عشان رحلتك وسلامتك يكونوا أولوية.</p>
+  </section>
+
+  <section class="card">
+
+    <!-- ========== إنشاء حساب ========== -->
+    <div id="v-signup" class="oa">
+      <div class="top">
+        <div class="row">
+          <button type="button" class="bk" id="s-back" aria-label="رجوع"></button>
+          <b id="s-title">إنشاء حساب جديد</b>
+          <span class="sp"></span>
+        </div>
+        <div class="steps" id="steps"></div>
+      </div>
+      <div id="s-msg" class="msg"></div>
+
+      <!-- 1 البيانات الأساسية -->
+      <div class="step" data-s="1">
+        <div class="prov hidden" id="prov">
+          <div class="av" id="prov-av"></div>
+          <div class="pi"><b id="prov-name"></b><small id="prov-sub"></small></div>
+          <button type="button" class="link" id="prov-out">خروج</button>
+        </div>
+        <label class="lb">الاسم الكامل</label>
+        <div class="field" id="name-f"><span class="ic" data-i="user"></span><input id="s-name" autocomplete="name" placeholder="الاسم كما في البطاقة"></div>
+        <div class="hint hidden" id="name-hint"></div>
+        <label class="lb">البريد الإلكتروني <span style="color:var(--mut);font-weight:600">(اختياري)</span></label>
+        <div class="field"><span class="ic" data-i="mail"></span><input id="s-email" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" style="direction:ltr;text-align:right"></div>
+        <label class="lb">رقم الهاتف</label>
+        <div class="field"><span class="ic" data-i="phone"></span><input id="s-phone" inputmode="numeric" maxlength="11" placeholder="01012345678"></div>
+        <label class="lb">النوع</label>
+        <div class="radios">
+          <label><input type="radio" name="gender" value="male" checked> ذكر</label>
+          <label><input type="radio" name="gender" value="female"> أنثى</label>
+        </div>
+        <label class="lb">نوع الحساب</label>
+        <div class="radios">
+          <label><input type="radio" name="role" value="client" checked> عميل</label>
+          <label><input type="radio" name="role" value="driver"> سائق</label>
+        </div>
+        <div class="nav"><span class="sp2"></span><button class="btn" data-next>التالي</button></div>
+      </div>
+
+      <!-- 2 الهوية -->
+      <div class="step hidden" data-s="2">
+        <label class="lb">ادخل رقمك القومي</label>
+        <div class="field"><span class="ic" data-i="id"></span><input id="s-nid" inputmode="numeric" maxlength="14" placeholder="14 رقم"></div>
+        <div class="hint" id="nid-hint">يجب أن يكون الرقم القومي صحيحًا ومطابقًا للنوع</div>
+        <div class="idbox">
+          <div class="t"><span data-i="card" style="display:flex"></span>صورة الهوية</div>
+          <div class="pics">
+            <button type="button" class="pic" id="pic-front"><span data-i="cam" style="display:flex"></span><b>الوجه الأمامي</b></button>
+            <button type="button" class="pic" id="pic-back"><span data-i="cam" style="display:flex"></span><b>الوجه الخلفي</b></button>
+          </div>
+          <div class="hint" style="margin:8px 0 0">الصورة بتتاخد من الكاميرا مباشرة، ولازم البطاقة الأصلية تبان كاملة وواضحة</div>
+        </div>
+        <label class="lb">كلمة المرور</label>
+        <div class="field"><span class="ic" data-i="lock"></span><input id="s-pass" type="password" autocomplete="new-password" placeholder="8 أحرف على الأقل (حروف وأرقام)"><button type="button" class="eye" data-eye="s-pass" aria-label="إظهار كلمة المرور"></button></div>
+        <div class="field"><span class="ic" data-i="lock"></span><input id="s-pass2" type="password" autocomplete="new-password" placeholder="تأكيد كلمة المرور"></div>
+        <div class="nav"><button type="button" class="bk2" data-prev>العودة</button><button class="btn" data-next>التالي</button></div>
+      </div>
+
+      <!-- 3 العنوان -->
+      <div class="step hidden" data-s="3">
+        <label class="lb">المحافظة</label>
+        <div class="field"><span class="ic" data-i="pin"></span><select id="s-gov"></select></div>
+        <label class="lb">المدينة / المنطقة</label>
+        <div class="field"><span class="ic" data-i="pin"></span><input id="s-city" placeholder="المدينة أو المنطقة"></div>
+        <label class="lb">العنوان بالتفصيل</label>
+        <div class="field"><span class="ic" data-i="home"></span><input id="s-addr" autocomplete="street-address" placeholder="الشارع، رقم المبنى"></div>
+        <div class="nav"><button type="button" class="bk2" data-prev>العودة</button><button class="btn" data-next>التالي</button></div>
+      </div>
+
+      <!-- 4 التحقق -->
+      <div class="step hidden" data-s="4">
+        <div class="idbox">
+          <div class="t"><span data-i="user" style="display:flex"></span>التحقق من الوجه</div>
+          <p class="hint" style="margin:0 0 8px">هنفتح الكاميرا ونصوّر وشك من 5 اتجاهات: الأمام واليمين والشمال وفوق وتحت.</p>
+          <div class="poses" id="poses"></div>
+          <button type="button" class="btn" id="face-start" style="height:42px;font-size:15px;margin-top:8px">ابدأ التحقق من الوجه</button>
+        </div>
+        <label style="display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0 12px;cursor:pointer">
+          <input type="checkbox" id="s-agree" style="accent-color:var(--blue);width:18px;height:18px;margin-top:3px">
+          <span>أؤكد أن البيانات والصور صحيحة وأوافق على شروط الاستخدام وسياسة الخصوصية</span>
+        </label>
+        <div class="nav"><button type="button" class="bk2" data-prev>العودة</button><button class="btn" id="s-submit">إنشاء الحساب</button></div>
+      </div>
+
+      <!-- 5 اكتمل -->
+      <div class="step hidden" data-s="5">
+        <div class="done-box">
+          <div class="ok" data-i="check"></div>
+          <h2 style="margin-bottom:6px">تم إنشاء حسابك</h2>
+          <p style="color:var(--mut);font-size:14.5px;line-height:1.8;margin-bottom:14px">طلبك قيد مراجعة الهوية. تقدر تسجل دخولك بالرقم القومي وكلمة المرور.</p>
+          <button class="btn" id="to-login">الذهاب لتسجيل الدخول</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="id-modal">
+  <div class="stage" id="id-stage"><video id="id-video" playsinline muted></video><div id="id-frame"></div>
+    <div class="m-top" id="id-title">صوّر البطاقة</div>
+    <div class="m-note">ضع البطاقة الأصلية كلها داخل الإطار، في إضاءة كويسة وبدون انعكاس</div></div>
+  <div class="m-bot"><button type="button" class="m-cancel" id="id-cancel">إلغاء</button><button type="button" class="shutter" id="id-snap" aria-label="التقاط"></button><span class="m-cancel" style="visibility:hidden">إلغاء</span></div>
+</div>
+<div class="modal" id="face-modal">
+  <div class="stage"><video id="face-video" playsinline muted></video><div id="face-oval"></div><div id="face-arrow" class="arrow"></div>
+    <div class="m-top">التحقق من الوجه</div>
+    <div class="m-note big" id="face-txt"></div><div class="dots" id="face-dots"></div></div>
+  <div class="m-bot"><button type="button" class="m-cancel" id="face-cancel">إلغاء</button></div>
+</div>
+<div class="busy" id="busy"><div class="spin"></div><p id="busy-t">جاري الفحص...</p></div>
+
+<script>
+/* ============ إعدادات Supabase ============ */
+const SUPABASE_URL = "https://odjlhzojqsrbqffehukm.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_yRm2rQvgy0NK_CIqoqtYdw_LBve2iAU";
+const BUCKET = "id-cards";
+const EMAIL_DOMAIN = "ridenow.app"; // الإيميل الداخلي = الرقم القومي@ridenow.app
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ============ الأيقونات (SVG مش إيموجي) ============ */
+const S = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICONS = {
+  id:S('<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.6 1.8-2.2 3-2.2s2.4.6 3 2.2M14 10h4M14 13h3"/>'),
+  card:S('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>'),
+  lock:S('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>'),
+  user:S('<circle cx="12" cy="8" r="4"/><path d="M4 20c1-4 4-6 8-6s7 2 8 6"/>'),
+  phone:S('<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18h2"/>'),
+  pin:S('<path d="M12 21s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>'),
+  home:S('<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/>'),
+  cam:S('<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
+  eye:S('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+  eyeoff:S('<path d="M3 3l18 18M6.5 7.5A17 17 0 002 12s3.5 7 10 7c1.7 0 3.2-.4 4.5-1M10.6 6.1A9.8 9.8 0 0112 6c6.5 0 10 6 10 6a17 17 0 01-3.2 3.8M9.9 9.9a3 3 0 004.2 4.2"/>'),
+  back:S('<path d="M9 5l7 7-7 7"/>'),
+  mail:S('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'),
+  check:S('<path d="M5 12.5l4.5 4.5L19 7.5"/>')
+};
+const $ = (s,r=document)=>r.querySelector(s), $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+$$('[data-i]').forEach(e=>{ e.innerHTML = ICONS[e.dataset.i]; });
+$('#s-back').innerHTML = ICONS.back;
+$$('[data-eye]').forEach(b=>{
+  b.innerHTML = ICONS.eye;
+  b.onclick = ()=>{ const i=$('#'+b.dataset.eye), show=i.type==='password'; i.type=show?'text':'password'; b.innerHTML=show?ICONS.eyeoff:ICONS.eye; };
+});
+
+/* ============ أدوات ============ */
+function msg(el,text,ok){ el.textContent=text||''; el.className='msg'+(text?' show':'')+(ok?' okm':''); }
+['s-phone','s-nid'].forEach(id=>$('#'+id).addEventListener('input',e=>{ e.target.value=e.target.value.replace(/\D/g,''); }));
+
+const GOVS={"01":"القاهرة","02":"الإسكندرية","03":"بورسعيد","04":"السويس","11":"دمياط","12":"الدقهلية","13":"الشرقية","14":"القليوبية","15":"كفر الشيخ","16":"الغربية","17":"المنوفية","18":"البحيرة","19":"الإسماعيلية","21":"الجيزة","22":"بني سويف","23":"الفيوم","24":"المنيا","25":"أسيوط","26":"سوهاج","27":"قنا","28":"أسوان","29":"الأقصر","31":"البحر الأحمر","32":"الوادي الجديد","33":"مطروح","34":"شمال سيناء","35":"جنوب سيناء","88":"خارج الجمهورية"};
+$('#s-gov').innerHTML='<option value="">اختر المحافظة</option>'+Object.values(GOVS).filter(g=>g!=="خارج الجمهورية").map(g=>`<option>${g}</option>`).join('');
+
+/* التحقق الحقيقي من الرقم القومي (مش بس 14 رقم) */
+function checkNID(n,gender){
+  if(!/^\d{14}$/.test(n)) return 'الرقم القومي لازم يكون 14 رقم';
+  if(n[0]!=='2'&&n[0]!=='3') return 'الرقم القومي غير صحيح';
+  const y=(n[0]==='2'?1900:2000)+ +n.slice(1,3), m=+n.slice(3,5), d=+n.slice(5,7), dt=new Date(y,m-1,d), now=new Date();
+  if(dt.getFullYear()!==y||dt.getMonth()!==m-1||dt.getDate()!==d) return 'تاريخ الميلاد داخل الرقم غير صحيح';
+  if(dt>now) return 'تاريخ الميلاد داخل الرقم في المستقبل';
+  const age=now.getFullYear()-y-(now<new Date(now.getFullYear(),m-1,d)?1:0);
+  if(age<18) return 'لازم يكون عمرك 18 سنة أو أكتر';
+  if(!GOVS[n.slice(7,9)]) return 'كود المحافظة داخل الرقم غير صحيح';
+  if(/^(\d)\1{13}$/.test(n)) return 'الرقم القومي غير صحيح';
+  if(gender && ((gender==='male')!==((+n[12])%2===1))) return 'الرقم القومي لا يطابق النوع المختار';
+  return '';
+}
+const checkPhone=p=>/^01[0125]\d{8}$/.test(p);
+const checkPass=p=>p.length>=8&&/[A-Za-z\u0621-\u064A]/.test(p)&&/\d/.test(p);
+
+/* ============ التنقل ============ */
+const vSign=$('#v-signup');
+let step=1, role='client', files={front:null,back:null,selfie:null}, oauthUser=null;
+const TITLES={1:'إنشاء حساب جديد',2:'الهوية',3:'العنوان',4:'التحقق',5:'اكتمل'};
+const LABELS=['البيانات الأساسية','الهوية','العنوان','التحقق','اكتمل'];
+function goStep(n){
+  step=n; msg($('#s-msg'),'');
+  $$('.step').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==n));
+  $('#s-title').textContent=(n===1&&oauthUser)?'إكمال بيانات حسابك':TITLES[n];
+  $('#steps').innerHTML=LABELS.map((l,i)=>`<div class="st ${i+1===n?'on':''} ${i+1<n?'done':''}"><i>${i+1<n?ICONS.check.replace('<svg','<svg width="15" height="15"'):i+1}</i>${l}</div>`).join('');
+  $('#s-back').style.visibility=n===5?'hidden':'visible';
+  $('.card').scrollTop=0;
+}
+const showSignup=(n=1)=>goStep(n);
+$('#s-back').onclick=()=>{ if(step>1) goStep(step-1); else cancelOAuth(); };
+$('#to-login').onclick=()=>location.replace('index.html');
+$$('[data-prev]').forEach(b=>b.onclick=()=>goStep(step-1));
+
+/* ============ الرجوع من Google / Facebook ============ */
+let routed=false, routeHold=false;
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/* فحص الاسم: لو الاسم عشوائي أو مش اسم حقيقي بنجبره يعدّله */
+function nameIssue(n){
+  n=(n||'').trim().replace(/\s+/g,' ');
+  if(!n) return 'اكتب اسمك الكامل';
+  if(!/^[\u0621-\u064AA-Za-z ]+$/.test(n)) return 'الاسم لازم يكون حروف بس (من غير أرقام أو رموز أو إيموجي)';
+  const w=n.split(' ');
+  if(w.length<3) return 'اكتب الاسم ثلاثي على الأقل زي ما في البطاقة';
+  if(w.some(x=>x.length<2)) return 'كل جزء من الاسم لازم يكون حرفين على الأقل';
+  if(/(.)\1{2,}/.test(n)) return 'الاسم فيه حروف متكررة كتير، اكتب اسمك الحقيقي';
+  if(w.some(x=>/^[A-Za-z]+$/.test(x)&&x.length>3&&!/[aeiouy]/i.test(x))) return 'الاسم شكله عشوائي، اكتب اسمك الحقيقي';
+  return '';
+}
+function nameHint(){
+  const h=$('#name-hint'), f=$('#name-f');
+  if(!oauthUser){ h.classList.add('hidden'); f.classList.remove('bad'); return; }
+  const e=nameIssue($('#s-name').value);
+  h.classList.remove('hidden'); h.className='hint '+(e?'bad':'good'); h.textContent=e||'الاسم تمام';
+  f.classList.toggle('bad',!!e);
+}
+$('#s-name').addEventListener('input',nameHint);
+
+function setMode(oa){
+  $('#v-signup').classList.toggle('oa',oa);
+  $('#prov').classList.toggle('hidden',!oa);
+  if(!oa){ oauthUser=null; nameHint(); }
+}
+function startOAuth(u){
+  oauthUser=u; const md=u.user_metadata||{}, nm=(md.full_name||md.name||'').trim(), av=md.avatar_url||md.picture||'';
+  const prov=(u.app_metadata||{}).provider==='facebook'?'Facebook':'Google';
+  $('#s-name').value=nm; $('#s-email').value=u.email||'';
+  const box=$('#prov-av'); box.innerHTML='';
+  if(av){ const im=new Image(); im.referrerPolicy='no-referrer'; im.alt=''; im.src=av; im.onerror=()=>{ box.textContent=(nm||'؟')[0]; }; box.appendChild(im); }
+  else box.textContent=(nm||'؟')[0];
+  $('#prov-name').textContent=nm||u.email||'حسابك';
+  $('#prov-sub').textContent='مسجّل دخول بـ '+prov+(u.email?' • '+u.email:'');
+  setMode(true); oauthUser=u; showSignup(1); nameHint();
+  const bad=nameIssue(nm);
+  msg($('#s-msg'),bad?'اسم حسابك على '+prov+' محتاج تعديل: '+bad:'أهلاً بيك! كمّل بياناتك مرة واحدة، وبعدها تدخل بالرقم القومي وكلمة المرور.',!bad);
+}
+async function cancelOAuth(){ await sb.auth.signOut(); location.replace('index.html'); }
+$('#prov-out').onclick=cancelOAuth;
+const homeOf=r=>r==='driver'?'driver.html':'client.html';
+
+/* حماية الصفحة: لازم يكون داخل بجوجل/فيس وبياناته ناقصة */
+(async()=>{
+  try{
+    goStep(1);
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session) return location.replace('index.html');
+    const u=session.user;
+    const {data:p,error}=await sb.from('profiles').select('national_id,role').eq('id',u.id).maybeSingle();
+    if(error){ document.body.classList.add('ready'); return msg($('#s-msg'),'تعذر قراءة الحساب من قاعدة البيانات: '+error.message+' (اتأكد إنك شغّلت الـ SQL)'); }
+    if(p&&p.national_id) return location.replace(homeOf(p.role));
+    if(((u.app_metadata||{}).provider||'email')==='email') return location.replace('index.html');
+    startOAuth(u); document.body.classList.add('ready');
+  }catch(e){ document.body.classList.add('ready'); msg($('#s-msg'),'حصلت مشكلة في الاتصال، حدّث الصفحة'); }
+})();
+
+/* ============ خطوات إنشاء الحساب ============ */
+const val=n=>document.querySelector(`input[name=${n}]:checked`).value;
+function nidHint(){
+  const v=$('#s-nid').value, h=$('#nid-hint');
+  if(v.length<14){ h.className='hint'; h.textContent=v.length?`${v.length} / 14`:'يجب أن يكون الرقم القومي صحيحًا ومطابقًا للنوع'; return; }
+  const e=checkNID(v,val('gender')); h.className='hint '+(e?'bad':'good'); h.textContent=e||'الرقم القومي صحيح';
+}
+$('#s-nid').addEventListener('input',nidHint);
+$$('input[name=gender]').forEach(r=>r.addEventListener('change',nidHint));
+
+function validate(n){
+  if(n===1){
+    if(oauthUser){ const ni=nameIssue($('#s-name').value); if(ni) return ni; }
+    else if($('#s-name').value.trim().split(/\s+/).length<3) return 'اكتب الاسم الثلاثي على الأقل';
+    const em=$('#s-email').value.trim(); if(em&&!EMAIL_RE.test(em)) return 'البريد الإلكتروني غير صحيح (أو سيبه فاضي لأنه اختياري)';
+    if(!checkPhone($('#s-phone').value)) return 'رقم الهاتف غير صحيح (مثال: 01012345678)';
+  }
+  if(n===2){
+    const e=checkNID($('#s-nid').value,val('gender')); if(e) return e;
+    if(!files.front||!files.back) return 'ارفع صورة الوجه الأمامي والخلفي للبطاقة';
+    if(!checkPass($('#s-pass').value)) return 'كلمة المرور لازم تكون 8 أحرف على الأقل وتحتوي على حروف وأرقام';
+    if($('#s-pass').value!==$('#s-pass2').value) return 'كلمتا المرور غير متطابقتين';
+  }
+  if(n===3){
+    if(!$('#s-gov').value) return 'اختر المحافظة';
+    if(!$('#s-city').value.trim()) return 'اكتب المدينة أو المنطقة';
+    if($('#s-addr').value.trim().length<6) return 'اكتب العنوان بالتفصيل';
+  }
+  return '';
+}
+$$('[data-next]').forEach(b=>b.onclick=()=>{ const e=validate(step); if(e) return msg($('#s-msg'),e); goStep(step+1); });
+
+$('#s-submit').onclick=async()=>{
+  if(Object.keys(shots).length<5) return msg($('#s-msg'),'كمّل التحقق من الوجه من 5 اتجاهات');
+  if(!$('#s-agree').checked) return msg($('#s-msg'),'لازم توافق على الشروط');
+  const e=validate(1)||validate(2)||validate(3); if(e) return msg($('#s-msg'),e);
+  const btn=$('#s-submit'); btn.disabled=true; msg($('#s-msg')); routeHold=true;
+  const nid=$('#s-nid').value, pass=$('#s-pass').value;
+  try{
+    let user,email;
+    if(oauthUser){ /* دخل بجوجل/فيس: نضيف له كلمة مرور */
+      const {error}=await sb.auth.updateUser({password:pass}); if(error) throw new Error('تعذر حفظ كلمة المرور');
+      if(!oauthUser.email) throw new Error('حسابك مفيهوش إيميل، فعّل صلاحية الإيميل في الحساب وسجّل تاني');
+      user=oauthUser; email=oauthUser.email;
+    }else{
+      email=`${nid}@${EMAIL_DOMAIN}`;
+      const {data,error}=await sb.auth.signUp({email,password:pass});
+      if(error) throw new Error(/registered/i.test(error.message)?'الرقم القومي مسجل بالفعل':'تعذر إنشاء الحساب');
+      if(!data.session) throw new Error('فعّل تسجيل بدون تأكيد الإيميل من إعدادات Supabase');
+      user=data.user;
+    }
+    const front=await upload(user.id,'front',files.front), back=await upload(user.id,'back',files.back);
+    const sp={}; for(const k of ['center','right','left','up','down']) sp[k]=await upload(user.id,'face-'+k,shots[k]);
+    const {error:pe}=await sb.from('profiles').upsert({
+      id:user.id,email,contact_email:($('#s-email').value.trim()||null),provider:oauthUser?((oauthUser.app_metadata||{}).provider||'oauth'):'email',full_name:$('#s-name').value.trim(),phone:$('#s-phone').value,national_id:nid,
+      gender:val('gender'),role:val('role'),governorate:$('#s-gov').value,city:$('#s-city').value.trim(),
+      address:$('#s-addr').value.trim(),id_front:front,id_back:back,selfie:sp.center,selfie_center:sp.center,selfie_right:sp.right,selfie_left:sp.left,selfie_up:sp.up,selfie_down:sp.down,
+      id_check:{...idCheck,face:{poses:order},checked_at:new Date().toISOString()},status:'pending'
+    });
+    if(pe) throw new Error(/duplicate|unique/i.test(pe.message)?'الرقم القومي أو الهاتف مسجل بالفعل':'تعذر حفظ البيانات: '+pe.message);
+    msg($('#s-msg'),'تم حفظ بياناتك بنجاح، جاري فتح صفحتك...',true);
+    setTimeout(()=>location.replace(homeOf(val('role'))),900); return;
+  }catch(err){ msg($('#s-msg'),err.message); }
+  routeHold=false; btn.disabled=false;
+};
+
+/* ============ الكاميرا + فحص البطاقة + بصمة الوجه ============ */
+const MIN_ID_MATCH=12;                 // أقل عدد أرقام متطابقة من 14 (قراءة OCR)
+const YAW_T=0.14, PITCH_T=0.06, HOLD=6; // حساسية لفّة الراس وعدد الفريمات الثابتة
+const BACK_WORDS=['الحالة','الاجتماعية','المهنة','الديانة','الزوج','تاريخ','الإصدار','الاصدار','انتهاء','الانتهاء','مسلم','مسيحي','أعزب','متزوج','وزارة','الداخلية','أرمل','مطلق'];
+const POSE_LBL={center:'الأمام',right:'اليمين',left:'الشمال',up:'فوق',down:'تحت'};
+const POSE_TXT={center:'بص للكاميرا مباشرة',right:'لف راسك ببطء ناحية اليمين',left:'لف راسك ببطء ناحية الشمال',up:'ارفع راسك لفوق شوية',down:'نزّل راسك لتحت شوية'};
+
+ICONS.arrow=S('<path d="M4 12h15M13 6l6 6-6 6"/>');
+const busy=(on,t)=>{ $('#busy').classList.toggle('show',!!on); if(t) $('#busy-t').textContent=t; };
+const toBlob=(c,q=.85)=>new Promise(r=>c.toBlob(r,'image/jpeg',q));
+async function getCam(video,facing){
+  stopCam(video);
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('الكاميرا مش متاحة. افتح الموقع على https من متصفح حديث');
+  try{ video.srcObject=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1920},height:{ideal:1080}},audio:false}); }
+  catch(e){ throw new Error('لازم تسمح للموقع باستخدام الكاميرا'); }
+  video.muted=true; video.setAttribute('playsinline',''); await video.play();
+}
+function stopCam(v){ const s=v.srcObject; if(s) s.getTracks().forEach(t=>t.stop()); v.srcObject=null; }
+function loadScript(src){ return new Promise((ok,no)=>{ const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=()=>no(new Error('تعذر تحميل أداة قراءة البطاقة، اتأكد من الإنترنت')); document.head.appendChild(s); }); }
+
+/* ---------- صور البطاقة ---------- */
+const idVideo=$('#id-video'); let idKey=null, verifiedNid=null, idCheck={};
+async function startID(key){
+  msg($('#s-msg'));
+  const e=checkNID($('#s-nid').value,val('gender'));
+  if(e) return msg($('#s-msg'),'اكتب الرقم القومي الصحيح الأول: '+e);
+  idKey=key;
+  $('#id-title').textContent=key==='front'?'صوّر الوجه الأمامي للبطاقة':'صوّر الوجه الخلفي للبطاقة';
+  $('#id-modal').classList.add('show');
+  try{ await getCam(idVideo,'environment'); }catch(err){ closeID(); msg($('#s-msg'),err.message); }
+}
+function closeID(){ stopCam(idVideo); $('#id-modal').classList.remove('show'); }
+$('#id-cancel').onclick=closeID;
+$('#pic-front').onclick=()=>startID('front'); $('#pic-back').onclick=()=>startID('back');
+$('#id-snap').onclick=async()=>{
+  const v=idVideo, st=$('#id-stage').getBoundingClientRect(), fr=$('#id-frame').getBoundingClientRect();
+  if(!v.videoWidth) return;
+  const sc=Math.max(st.width/v.videoWidth,st.height/v.videoHeight);
+  const ox=(v.videoWidth*sc-st.width)/2, oy=(v.videoHeight*sc-st.height)/2;
+  const sx=(fr.left-st.left+ox)/sc, sy=(fr.top-st.top+oy)/sc, sw=fr.width/sc, sh=fr.height/sc;
+  const c=document.createElement('canvas'); c.width=Math.min(1400,Math.round(sw)); c.height=Math.round(c.width*sh/sw);
+  c.getContext('2d').drawImage(v,sx,sy,sw,sh,0,0,c.width,c.height);
+  const key=idKey; closeID(); await verifyID(c,key);
+};
+let ocrW=null;
+async function ocr(c){
+  if(!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
+  if(!ocrW) ocrW=await Tesseract.createWorker('ara');
+  const {data}=await ocrW.recognize(c); return data.text||'';
+}
+const latin=t=>t.replace(/[\u0660-\u0669]/g,d=>d.charCodeAt(0)-1632).replace(/[\u06F0-\u06F9]/g,d=>d.charCodeAt(0)-1776);
+function bestMatch(text,nid){
+  const d=latin(text).replace(/\D/g,''); let best=0;
+  for(let i=0;i+14<=d.length;i++){ let m=0; for(let j=0;j<14;j++) if(d[i+j]===nid[j]) m++; if(m>best) best=m; }
+  return best;
+}
+function tile(key,blob){
+  const t=$('#pic-'+key); $$('img,.ck',t).forEach(x=>x.remove()); t.classList.remove('done');
+  if(!blob) return;
+  const im=new Image(); im.src=URL.createObjectURL(blob); t.appendChild(im);
+  const k=document.createElement('span'); k.className='ck'; k.innerHTML=ICONS.check; t.appendChild(k); t.classList.add('done');
+}
+async function verifyID(c,key){
+  busy(true,'جاري فحص البطاقة... ممكن ياخد ثواني');
+  try{
+    const text=await ocr(c);
+    if(key==='front'){
+      const nid=$('#s-nid').value, sc=bestMatch(text,nid);
+      if(sc<MIN_ID_MATCH) throw new Error('الرقم القومي في الصورة مش واضح أو مش مطابق للرقم اللي كتبته. صوّر الوجه الأمامي للبطاقة الأصلية كاملة، في إضاءة كويسة وبدون انعكاس.');
+      verifiedNid=nid; idCheck.front={match:sc};
+    }else{
+      const t=text.replace(/\s+/g,' '), hits=BACK_WORDS.filter(w=>t.includes(w)).length;
+      if(hits<1) throw new Error('الصورة دي مش شبه الوجه الخلفي لبطاقة الرقم القومي. صوّر الخلفي كامل وواضح.');
+      idCheck.back={hits};
+    }
+    files[key]=await toBlob(c); tile(key,files[key]);
+  }catch(err){ files[key]=null; tile(key,null); msg($('#s-msg'),err.message||'تعذر فحص الصورة'); }
+  busy(false);
+}
+$('#s-nid').addEventListener('input',()=>{ if(verifiedNid&&$('#s-nid').value!==verifiedNid){ verifiedNid=null; files.front=null; tile('front',null); } });
+
+/* ---------- بصمة الوجه (5 اتجاهات) ---------- */
+const faceVideo=$('#face-video'); let landmarker=null, running=false, order=[], idx=0, hold=0, pBase=null, capturing=false;
+let shots={};
+async function loadFace(){
+  if(landmarker) return landmarker;
+  const V='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+  const vis=await import(V+'/vision_bundle.mjs');
+  const fs=await vis.FilesetResolver.forVisionTasks(V+'/wasm');
+  const mk=d=>vis.FaceLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate:d},runningMode:'VIDEO',numFaces:2});
+  try{ landmarker=await mk('GPU'); }catch(e){ landmarker=await mk('CPU'); }
+  return landmarker;
+}
+const shuffle=a=>{ a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+function renderPoses(){
+  $('#poses').innerHTML=['center','right','left','up','down'].map(p=>`<div class="pz ${shots[p]?'ok':''}"><div class="pi" data-p="${p}"></div><small>${POSE_LBL[p]}</small></div>`).join('');
+  Object.keys(shots).forEach(p=>{ const d=$(`.pi[data-p=${p}]`); const im=new Image(); im.src=URL.createObjectURL(shots[p]); d.appendChild(im); });
+  $('#face-start').textContent=Object.keys(shots).length===5?'إعادة التحقق من الوجه':'ابدأ التحقق من الوجه';
+}
+function faceUI(){
+  const p=order[idx]; $('#face-txt').textContent=POSE_TXT[p]||'';
+  $('#face-dots').innerHTML=order.map((_,i)=>`<i class="${i<idx?'ok':i===idx?'cur':''}"></i>`).join('');
+  const a=$('#face-arrow'); a.className='arrow a-'+p; a.innerHTML=p==='center'?'':ICONS.arrow;
+}
+async function startFace(){
+  msg($('#s-msg')); $('#face-modal').classList.add('show'); $('#face-txt').textContent='جاري تجهيز الكاميرا...';
+  try{ await getCam(faceVideo,'user'); await loadFace(); }
+  catch(err){ closeFace(); return msg($('#s-msg'),err.message&&!/import|fetch|module/i.test(err.message)?err.message:'تعذر تحميل نظام التعرف على الوجه، اتأكد من الإنترنت وجرب تاني'); }
+  shots={}; order=['center',...shuffle(['right','left','up','down'])]; idx=0; hold=0; pBase=null; running=true; capturing=false; faceUI(); loop();
+}
+function closeFace(){ running=false; stopCam(faceVideo); $('#face-modal').classList.remove('show'); renderPoses(); }
+$('#face-start').onclick=startFace; $('#face-cancel').onclick=closeFace;
+function loop(){
+  if(!running) return;
+  if(faceVideo.readyState>=2&&!capturing){
+    const r=landmarker.detectForVideo(faceVideo,performance.now()); step_(r.faceLandmarks||[]);
+  }
+  requestAnimationFrame(loop);
+}
+async function step_(faces){
+  const txt=$('#face-txt'), oval=$('#face-oval'), pose=order[idx];
+  const say=t=>{ txt.textContent=t; oval.classList.remove('ok'); hold=0; };
+  if(!faces.length) return say('مش شايف وشك، خليه جوه الدايرة');
+  if(faces.length>1) return say('لازم يكون في وش واحد بس قدام الكاميرا');
+  const m=faces[0], L=m[234], R=m[454], N=m[1], eyeY=(m[33].y+m[263].y)/2, ch=m[152];
+  const fw=R.x-L.x, cx=(L.x+R.x)/2;
+  if(fw<0.22) return say('قرّب من الكاميرا شوية');
+  if(fw>0.8) return say('بعّد عن الكاميرا شوية');
+  if(Math.abs(cx-0.5)>0.2) return say('خلي وشك في نص الدايرة');
+  const yaw=(N.x-cx)/fw, pitch=(N.y-eyeY)/(ch.y-eyeY);
+  let okp=false;
+  if(pose==='center') okp=Math.abs(yaw)<0.07;
+  else if(pose==='right') okp=yaw<-YAW_T;          // يمين المستخدم
+  else if(pose==='left') okp=yaw>YAW_T;            // شمال المستخدم
+  else if(pose==='up') okp=Math.abs(yaw)<0.12&&pitch<pBase-PITCH_T;
+  else if(pose==='down') okp=Math.abs(yaw)<0.12&&pitch>pBase+PITCH_T;
+  if(!okp){ txt.textContent=POSE_TXT[pose]; oval.classList.remove('ok'); hold=0; return; }
+  oval.classList.add('ok'); txt.textContent='ثبّت...';
+  if(++hold<HOLD) return;
+  capturing=true;
+  if(pose==='center') pBase=pitch;
+  const c=document.createElement('canvas'); c.width=640; c.height=Math.round(640*faceVideo.videoHeight/faceVideo.videoWidth);
+  c.getContext('2d').drawImage(faceVideo,0,0,c.width,c.height);
+  shots[pose]=await toBlob(c,.8);
+  idx++; hold=0; oval.classList.remove('ok');
+  if(idx>=order.length){ closeFace(); return; }
+  faceUI(); setTimeout(()=>{ capturing=false; },600);
+}
+renderPoses();
+
+async function upload(uid,name,blob){
+  if(!blob) return null;
+  const path=`${uid}/${name}-${Date.now()}.jpg`;
+  const {error}=await sb.storage.from(BUCKET).upload(path,blob,{upsert:true,contentType:'image/jpeg'});
+  if(error) throw new Error('فشل رفع الصورة');
+  return path;
+}
+
+/* تشغيل فيديو الخلفية (بعض المتصفحات بتمنع التشغيل التلقائي لحد أول لمسة) */
+(()=>{ const vs=$$('.bg video'); const go=()=>vs.forEach(v=>v.play().catch(()=>{})); go(); ['touchstart','click'].forEach(e=>addEventListener(e,go,{once:true,passive:true})); })();
+
+</script>
+</body>
+</html>
