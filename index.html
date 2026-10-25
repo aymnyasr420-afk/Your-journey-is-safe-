@@ -327,12 +327,6 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
 
       <!-- 4 التحقق -->
       <div class="step hidden" data-s="4">
-        <div class="idbox">
-          <div class="t"><span data-i="user" style="display:flex"></span>التحقق من الوجه</div>
-          <p class="hint" style="margin:0 0 8px">هنفتح الكاميرا ونصوّر وشك من 5 اتجاهات: الأمام واليمين والشمال وفوق وتحت.</p>
-          <div class="poses" id="poses"></div>
-          <button type="button" class="btn" id="face-start" style="height:42px;font-size:15px;margin-top:8px">ابدأ التحقق من الوجه</button>
-        </div>
         <div id="veh" class="hidden">
           <label class="lb">نوع المركبة</label>
           <div class="vgrid">
@@ -340,6 +334,12 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
             <label><input type="radio" name="vehicle" value="tuktuk"><span class="vc"><span class="vi" data-i="vtuk"></span><b>تيك توك</b></span></label>
             <label><input type="radio" name="vehicle" value="motorcycle"><span class="vc"><span class="vi" data-i="vmoto"></span><b>موتوسيكل</b></span></label>
           </div>
+        </div>
+        <div class="idbox">
+          <div class="t"><span data-i="user" style="display:flex"></span>التحقق من الوجه</div>
+          <p class="hint" style="margin:0 0 8px">هنفتح الكاميرا ونصوّر وشك من 5 اتجاهات: الأمام واليمين والشمال وفوق وتحت.</p>
+          <div class="poses" id="poses"></div>
+          <button type="button" class="btn" id="face-start" style="height:42px;font-size:15px;margin-top:8px">ابدأ التحقق من الوجه</button>
         </div>
         <label style="display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0 12px;cursor:pointer">
           <input type="checkbox" id="s-agree" style="accent-color:var(--blue);width:18px;height:18px;margin-top:3px">
@@ -451,6 +451,7 @@ function showLogin(){ $('.screen').classList.remove('su'); vSign.classList.add('
 function showSignup(n=1){ $('.screen').classList.add('su'); vLogin.classList.add('hidden'); vSign.classList.remove('hidden'); goStep(n); }
 function goStep(n){
   step=n; msg($('#s-msg'),'');
+  $('#veh').classList.toggle('hidden',val('role')!=='driver');
   $$('.step').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==n));
   $('#s-title').textContent=(n===1&&oauthUser)?'إكمال بيانات حسابك':TITLES[n];
   $('#steps').innerHTML=LABELS.map((l,i)=>`<div class="st ${i+1===n?'on':''} ${i+1<n?'done':''}"><i>${i+1<n?ICONS.check.replace('<svg','<svg width="15" height="15"'):i+1}</i>${l}</div>`).join('');
