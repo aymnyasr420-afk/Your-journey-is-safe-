@@ -172,6 +172,21 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
 .step[data-s="5"]:not(.hidden) .done-box .ok svg path{animation:okdraw .85s ease-in-out 3 forwards}
 @keyframes okdraw{0%{stroke-dashoffset:24}60%,100%{stroke-dashoffset:0}}
 @keyframes okpop{0%{transform:scale(.8)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+.acc{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.acc label{cursor:pointer;position:relative}
+.acc input{position:absolute;opacity:0;pointer-events:none}
+.ac{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 8px 16px;border:1.5px solid var(--line);border-radius:18px;background:#fff;color:var(--mut);transition:background .15s,color .15s,border-color .15s}
+.ac .ai{display:flex;width:54px;height:54px;border-radius:16px;background:var(--field);align-items:center;justify-content:center;color:var(--blue);margin-bottom:4px;transition:background .15s,color .15s}
+.ac .ai svg{width:30px;height:30px}
+.ac b{font-size:17px;color:var(--navy);transition:color .15s}
+.ac small{font-size:12px}
+.acc input:checked+.ac{background:var(--blue);border-color:var(--blue);color:#d7e6ff}
+.acc input:checked+.ac b{color:#fff}
+.acc input:checked+.ac .ai{background:rgba(255,255,255,.18);color:#fff}
+.acc input:focus-visible+.ac{outline:2px solid var(--blue);outline-offset:2px}
+#veh:not(.hidden){animation:vin .28s ease}
+@keyframes vin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -207,11 +222,6 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
       <div class="seg">
         <label><input type="radio" name="gender" value="male" checked><span class="c"><span data-i="male" style="display:flex"></span>ذكر</span></label>
         <label><input type="radio" name="gender" value="female"><span class="c"><span data-i="female" style="display:flex"></span>أنثى</span></label>
-      </div>
-      <label class="lb">نوع الحساب</label>
-      <div class="seg">
-        <label><input type="radio" name="role" value="client" checked><span class="c"><span data-i="user" style="display:flex"></span>عميل</span></label>
-        <label><input type="radio" name="role" value="driver"><span class="c"><span data-i="car" style="display:flex"></span>سائق</span></label>
       </div>
       <div class="nav"><span class="sp2"></span><button class="btn" data-next>التالي</button></div>
     </div>
@@ -249,20 +259,20 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
 
     <!-- 4 التحقق -->
     <div class="step hidden" data-s="4">
+        <label class="lb">هتستخدم RideNow كـ</label>
+        <div class="acc">
+          <label><input type="radio" name="role" value="client" checked><span class="ac"><span class="ai" data-i="user"></span><b>عميل</b><small>اطلب رحلتك بسهولة</small></span></label>
+          <label><input type="radio" name="role" value="driver"><span class="ac"><span class="ai" data-i="wheel"></span><b>سائق</b><small>وصّل الركاب واكسب</small></span></label>
+        </div>
         <div id="veh" class="hidden">
-          <label class="lb">نوع المركبة</label>
+          <label class="lb">اختار المركبة اللي معاك</label>
           <div class="vgrid">
-            <label><input type="radio" name="vehicle" value="car" checked><span class="vc"><img src="https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/4fbbe595-50c8-4805-a670-1986f81e25f8.png" alt=""><b>سيارة</b></span></label>
-            <label><input type="radio" name="vehicle" value="tuktuk"><span class="vc"><span class="vi" data-i="vtuk"></span><b>تيك توك</b></span></label>
-            <label><input type="radio" name="vehicle" value="motorcycle"><span class="vc"><span class="vi" data-i="vmoto"></span><b>موتوسيكل</b></span></label>
+            <label><input type="radio" name="vehicle" value="car" checked><span class="vc"><img src="https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/4fbbe595-50c8-4805-a670-1986f81e25f8.png" data-fb="vcar" alt=""><b>سيارة</b></span></label>
+            <label><input type="radio" name="vehicle" value="tuktuk"><span class="vc"><img src="tuktuk.png" data-fb="vtuk" alt=""><b>تيك توك</b></span></label>
+            <label><input type="radio" name="vehicle" value="motorcycle"><span class="vc"><img src="motorcycle.png" data-fb="vmoto" alt=""><b>موتوسيكل</b></span></label>
           </div>
         </div>
-      <div class="idbox">
-        <div class="t"><span data-i="user" style="display:flex"></span>التحقق من الوجه</div>
-        <div class="poses" id="poses"></div>
-        <button type="button" class="btn" id="face-start" style="height:42px;font-size:15px;margin-top:10px">ابدأ التحقق من الوجه</button>
-      </div>
-      <label style="display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0 12px;cursor:pointer">
+        <label style="display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0 12px;cursor:pointer">
         <input type="checkbox" id="s-agree" style="accent-color:var(--blue);width:18px;height:18px;margin-top:3px">
         <span>أؤكد أن البيانات والصور صحيحة وأوافق على شروط الاستخدام وسياسة الخصوصية</span>
       </label>
@@ -286,12 +296,6 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
     <div class="m-top" id="id-title">صوّر البطاقة</div>
     <div class="m-note" id="id-note">ضع البطاقة داخل الإطار</div></div>
   <div class="m-bot"><button type="button" class="m-cancel" id="id-cancel">إلغاء</button><button type="button" class="shutter" id="id-snap" aria-label="التقاط"></button><span class="m-cancel" style="visibility:hidden">إلغاء</span></div>
-</div>
-<div class="modal" id="face-modal">
-  <div class="stage"><video id="face-video" playsinline muted></video><div id="face-oval"></div><div id="face-arrow" class="arrow"></div>
-    <div class="m-top">التحقق من الوجه</div>
-    <div class="m-note big" id="face-txt"></div><div class="dots" id="face-dots"></div></div>
-  <div class="m-bot"><button type="button" class="m-cancel" id="face-cancel">إلغاء</button></div>
 </div>
 <div class="dp" id="dp"><div class="dsheet">
   <div class="dsh-h"><button type="button" id="dp-x">إلغاء</button><b>تاريخ الميلاد</b><button type="button" class="ok" id="dp-ok">تم</button></div>
@@ -325,6 +329,7 @@ const ICONS = {
   eyeoff:S('<path d="M3 3l18 18M6.5 7.5A17 17 0 002 12s3.5 7 10 7c1.7 0 3.2-.4 4.5-1M10.6 6.1A9.8 9.8 0 0112 6c6.5 0 10 6 10 6a17 17 0 01-3.2 3.8M9.9 9.9a3 3 0 004.2 4.2"/>'),
   back:S('<path d="M9 5l7 7-7 7"/>'),
   mail:S('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'),
+  wheel:S('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M3.200 10l6.500 1.500M20.800 10l-6.500 1.500M12 14.500V21"/>'),
   check:S('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
   cal:S('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
   male:S('<circle cx="10" cy="14" r="5"/><path d="M14 10l6-6M15 4h5v5"/>'),
@@ -339,6 +344,9 @@ const ICONS = {
 const $ = (s,r=document)=>r.querySelector(s), $$ = (s,r=document)=>[...r.querySelectorAll(s)];
 $$('[data-i]').forEach(e=>{ e.innerHTML = ICONS[e.dataset.i]; });
 $('#s-back').innerHTML = ICONS.back;
+function vfall(k){ const d=document.createElement('span'); d.className='vi'; d.innerHTML=ICONS[k]; return d; }
+$$('img[data-fb]').forEach(im=>{ const fix=()=>{ if(im.isConnected) im.replaceWith(vfall(im.dataset.fb)); }; if(im.complete&&!im.naturalWidth) fix(); else im.addEventListener('error',fix,{once:true}); });
+
 $$('[data-eye]').forEach(b=>{
   b.innerHTML = ICONS.eye;
   b.onclick = ()=>{ const i=$('#'+b.dataset.eye), show=i.type==='password'; i.type=show?'text':'password'; b.innerHTML=show?ICONS.eyeoff:ICONS.eye; };
@@ -391,13 +399,13 @@ $('#s-name').addEventListener('input',nameHint);
 
 /* ============ التنقل ============ */
 let step=1, files={front:null,back:null}, oauthUser=null;
-const LABELS=['البيانات','الهوية','العنوان','التحقق','اكتمل'];
-const INTRO={1:['user','بياناتك الأساسية'],2:['id','التحقق من الهوية'],3:['pin','عنوانك'],4:['cam','التحقق من الوجه'],5:['check','تمام']};
+const LABELS=['البيانات','الهوية','العنوان','الحساب','اكتمل'];
+const INTRO={1:['user','بياناتك الأساسية'],2:['id','التحقق من الهوية'],3:['pin','عنوانك'],4:['user','نوع الحساب'],5:['check','تمام']};
 const HELP={
-  1:['بياناتك الأساسية',['اكتب الاسم ثلاثي زي ما في البطاقة.','البريد ورقم الهاتف بيتاخدوا من حسابك لو متاحين، ولو الهاتف فاضي اكتبه.','اختار النوع ونوع الحساب (عميل أو سائق).']],
+  1:['بياناتك الأساسية',['اكتب الاسم ثلاثي زي ما في البطاقة.','البريد ورقم الهاتف بيتاخدوا من حسابك لو متاحين، ولو الهاتف فاضي اكتبه.','اختار النوع (ذكر أو أنثى).']],
   2:['التحقق من الهوية',['اكتب الرقم القومي الصحيح ويطابق النوع.','صوّر الوجه الأمامي والخلفي للبطاقة بالكاميرا. لما الإطار يبقى أخضر هتتصور تلقائي.','اختار كلمة مرور 8 أحرف على الأقل فيها حروف وأرقام.']],
   3:['عنوانك',['اختار تاريخ الميلاد من العجلات، ولازم يطابق الرقم القومي.','اختار المحافظة.','اكتب المدينة أو المنطقة.','اكتب العنوان بالتفصيل: الشارع ورقم المبنى.']],
-  4:['التحقق من الوجه',['اضغط ابدأ واسمح للكاميرا.','خلي وشك جوه الدايرة واتبع الأسهم لتحريك راسك.','لو أنت سائق، اختار نوع مركبتك: سيارة أو تيك توك أو موتوسيكل.','لازم الـ 5 صور يكتملوا، وبعدها وافق على الشروط واضغط إنشاء الحساب.']],
+  4:['نوع الحساب',['اختار عميل لو هتطلب رحلات، أو سائق لو هتوصّل الركاب.','لو اخترت سائق، اختار المركبة اللي معاك: سيارة أو تيك توك أو موتوسيكل.','وافق على الشروط واضغط إنشاء الحساب.']],
   5:['تمام',['تم حفظ بياناتك، وحسابك قيد مراجعة الهوية.']]
 };
 function openHelp(n){
@@ -457,12 +465,11 @@ function validate(n){
 $$('[data-next]').forEach(b=>b.onclick=()=>{ const e=validate(step); if(e) return msg($('#s-msg'),e); goStep(step+1); });
 
 $('#s-submit').onclick=async()=>{
-  if(Object.keys(shots).length<5) return msg($('#s-msg'),'كمّل التحقق من الوجه من 5 اتجاهات');
   if(!$('#s-agree').checked) return msg($('#s-msg'),'لازم توافق على الشروط');
   const e=validate(1)||validate(2)||validate(3); if(e) return msg($('#s-msg'),e);
   const btn=$('#s-submit'); btn.disabled=true; msg($('#s-msg')); routeHold=true;
   const nid=$('#s-nid').value, pass=$('#s-pass').value;
-  const T=9; let dn=0; const tick=l=>{ dn++; LD.set(dn/T,l); };
+  const T=4; let dn=0; const tick=l=>{ dn++; LD.set(dn/T,l); };
   try{
     LD.show('جاري حفظ كلمة المرور...');
     const {error}=await sb.auth.updateUser({password:pass}); if(error) throw new Error('تعذر حفظ كلمة المرور'); tick('جاري رفع صورة البطاقة الأمامية...');
@@ -470,14 +477,13 @@ $('#s-submit').onclick=async()=>{
     const user=oauthUser, email=oauthUser.email;
     LD.set(dn/T,'جاري رفع صورة البطاقة الأمامية...');
     const front=await upload(user.id,'front',files.front); tick('جاري رفع صورة البطاقة الخلفية...');
-    const back=await upload(user.id,'back',files.back); tick('جاري رفع صور الوجه...');
-    const sp={}; for(const k of ['center','right','left','up','down']){ sp[k]=await upload(user.id,'face-'+k,shots[k]); tick('جاري رفع صور الوجه...'); }
+    const back=await upload(user.id,'back',files.back); tick('جاري حفظ بياناتك...');
     LD.set(dn/T,'جاري حفظ بياناتك...');
     const {error:pe}=await sb.from('profiles').upsert({
       id:user.id,email,contact_email:oauthUser.email,provider:((oauthUser.app_metadata||{}).provider||'oauth'),full_name:$('#s-name').value.trim(),phone:$('#s-phone').value,national_id:nid,
       gender:val('gender'),birth_date:birthISO,role:val('role'),vehicle_type:val('role')==='driver'?val('vehicle'):null,governorate:$('#s-gov').value,city:$('#s-city').value.trim(),
-      address:$('#s-addr').value.trim(),id_front:front,id_back:back,selfie:sp.center,selfie_center:sp.center,selfie_right:sp.right,selfie_left:sp.left,selfie_up:sp.up,selfie_down:sp.down,
-      id_check:{...idCheck,face:{poses:order},checked_at:new Date().toISOString()},status:'pending'
+      address:$('#s-addr').value.trim(),id_front:front,id_back:back,
+      id_check:{...idCheck,checked_at:new Date().toISOString()},status:'pending'
     });
     if(pe) throw new Error(/duplicate|unique/i.test(pe.message)?'الرقم القومي أو الهاتف مسجل بالفعل':'تعذر حفظ البيانات: '+pe.message);
     tick('تم الحفظ'); LD.set(1,'تم! جاري فتح حسابك'); await new Promise(r=>setTimeout(r,500)); LD.hide();
@@ -638,74 +644,6 @@ async function verifyID(c,key){
 }
 $('#s-nid').addEventListener('input',()=>{ if(verifiedNid&&$('#s-nid').value!==verifiedNid){ verifiedNid=null; files.front=null; tile('front',null); } });
 
-/* ---------- بصمة الوجه (5 اتجاهات) ---------- */
-const faceVideo=$('#face-video'); let landmarker=null, running=false, order=[], idx=0, hold=0, pBase=null, capturing=false;
-let shots={};
-async function loadFace(){
-  if(landmarker) return landmarker;
-  const V='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
-  const vis=await import(V+'/vision_bundle.mjs');
-  const fs=await vis.FilesetResolver.forVisionTasks(V+'/wasm');
-  const mk=d=>vis.FaceLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate:d},runningMode:'VIDEO',numFaces:2});
-  try{ landmarker=await mk('GPU'); }catch(e){ landmarker=await mk('CPU'); }
-  return landmarker;
-}
-const shuffle=a=>{ a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
-function renderPoses(){
-  $('#poses').innerHTML=['center','right','left','up','down'].map(p=>`<div class="pz ${shots[p]?'ok':''}"><div class="pi" data-p="${p}"></div><small>${POSE_LBL[p]}</small></div>`).join('');
-  Object.keys(shots).forEach(p=>{ const d=$(`.pi[data-p=${p}]`); const im=new Image(); im.src=URL.createObjectURL(shots[p]); d.appendChild(im); });
-  $('#face-start').textContent=Object.keys(shots).length===5?'إعادة التحقق من الوجه':'ابدأ التحقق من الوجه';
-}
-function faceUI(){
-  const p=order[idx]; $('#face-txt').textContent=POSE_TXT[p]||'';
-  $('#face-dots').innerHTML=order.map((_,i)=>`<i class="${i<idx?'ok':i===idx?'cur':''}"></i>`).join('');
-  const a=$('#face-arrow'); a.className='arrow a-'+p; a.innerHTML=p==='center'?'':ICONS.arrow;
-}
-async function startFace(){
-  msg($('#s-msg')); $('#face-modal').classList.add('show'); $('#face-txt').textContent='جاري تجهيز الكاميرا...';
-  try{ await getCam(faceVideo,'user'); await loadFace(); }
-  catch(err){ closeFace(); return msg($('#s-msg'),err.message&&!/import|fetch|module/i.test(err.message)?err.message:'تعذر تحميل نظام التعرف على الوجه، اتأكد من الإنترنت وجرب تاني'); }
-  shots={}; order=['center',...shuffle(['right','left','up','down'])]; idx=0; hold=0; pBase=null; running=true; capturing=false; faceUI(); loop();
-}
-function closeFace(){ running=false; stopCam(faceVideo); $('#face-modal').classList.remove('show'); renderPoses(); }
-$('#face-start').onclick=startFace; $('#face-cancel').onclick=closeFace;
-function loop(){
-  if(!running) return;
-  if(faceVideo.readyState>=2&&!capturing){
-    const r=landmarker.detectForVideo(faceVideo,performance.now()); step_(r.faceLandmarks||[]);
-  }
-  requestAnimationFrame(loop);
-}
-async function step_(faces){
-  const txt=$('#face-txt'), oval=$('#face-oval'), pose=order[idx];
-  const say=t=>{ txt.textContent=t; oval.classList.remove('ok'); hold=0; };
-  if(!faces.length) return say('مش شايف وشك، خليه جوه الدايرة');
-  if(faces.length>1) return say('لازم يكون في وش واحد بس قدام الكاميرا');
-  const m=faces[0], L=m[234], R=m[454], N=m[1], eyeY=(m[33].y+m[263].y)/2, ch=m[152];
-  const fw=R.x-L.x, cx=(L.x+R.x)/2;
-  if(fw<0.22) return say('قرّب من الكاميرا شوية');
-  if(fw>0.8) return say('بعّد عن الكاميرا شوية');
-  if(Math.abs(cx-0.5)>0.2) return say('خلي وشك في نص الدايرة');
-  const yaw=(N.x-cx)/fw, pitch=(N.y-eyeY)/(ch.y-eyeY);
-  let okp=false;
-  if(pose==='center') okp=Math.abs(yaw)<0.07;
-  else if(pose==='right') okp=yaw<-YAW_T;
-  else if(pose==='left') okp=yaw>YAW_T;
-  else if(pose==='up') okp=Math.abs(yaw)<0.12&&pitch<pBase-PITCH_T;
-  else if(pose==='down') okp=Math.abs(yaw)<0.12&&pitch>pBase+PITCH_T;
-  if(!okp){ txt.textContent=POSE_TXT[pose]; oval.classList.remove('ok'); hold=0; return; }
-  oval.classList.add('ok'); txt.textContent='ثبّت...';
-  if(++hold<HOLD) return;
-  capturing=true;
-  if(pose==='center') pBase=pitch;
-  const c=document.createElement('canvas'); c.width=640; c.height=Math.round(640*faceVideo.videoHeight/faceVideo.videoWidth);
-  c.getContext('2d').drawImage(faceVideo,0,0,c.width,c.height);
-  shots[pose]=await toBlob(c,.8);
-  idx++; hold=0; oval.classList.remove('ok');
-  if(idx>=order.length){ closeFace(); return; }
-  faceUI(); setTimeout(()=>{ capturing=false; },600);
-}
-renderPoses();
 
 async function upload(uid,name,blob){
   if(!blob) return null;
