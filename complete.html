@@ -268,8 +268,8 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:6px 0 6px}
           <label class="lb">اختار المركبة اللي معاك</label>
           <div class="vgrid">
             <label><input type="radio" name="vehicle" value="car" checked><span class="vc"><img src="https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/5d3effa6-0026-47f0-a66a-d7550c95e73a.png" data-fb="vcar" alt=""><b>سيارة</b></span></label>
-            <label><input type="radio" name="vehicle" value="tuktuk"><span class="vc"><img src="https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/5976cc9c-fb96-457d-a0aa-847bb1ceb6e1.png" data-fb="vtuk" alt=""><b>تيك توك</b></span></label>
-            <label><input type="radio" name="vehicle" value="motorcycle"><span class="vc"><img src=" https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/e4ee81bf-430f-4275-9534-4fbf86bb9b8f.png" data-fb="vmoto" alt=""><b>موتوسيكل</b></span></label>
+            <label><input type="radio" name="vehicle" value="tuktuk"><span class="vc"><img src=" https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/5976cc9c-fb96-457d-a0aa-847bb1ceb6e1.png" data-fb="vtuk" alt=""><b>توك توك</b></span></label>
+            <label><input type="radio" name="vehicle" value="motorcycle"><span class="vc"><img src="https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/e4ee81bf-430f-4275-9534-4fbf86bb9b8f.png" data-fb="vmoto" alt=""><b>موتوسيكل</b></span></label>
           </div>
         </div>
         <label style="display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0 12px;cursor:pointer">
@@ -472,7 +472,7 @@ $('#s-submit').onclick=async()=>{
   const T=4; let dn=0; const tick=l=>{ dn++; LD.set(dn/T,l); };
   try{
     LD.show('جاري حفظ كلمة المرور...');
-    const {error}=await sb.auth.updateUser({password:pass}); if(error) throw new Error('تعذر حفظ كلمة المرور'); tick('جاري رفع صورة البطاقة الأمامية...');
+    const {error}=await sb.auth.updateUser({password:pass}); if(error) throw new Error('تعذر حفظ كلمة المرور: '+error.message); tick('جاري رفع صورة البطاقة الأمامية...');
     if(!oauthUser.email) throw new Error('حسابك مفيهوش إيميل، فعّل صلاحية الإيميل في الحساب وسجّل تاني');
     const user=oauthUser, email=oauthUser.email;
     LD.set(dn/T,'جاري رفع صورة البطاقة الأمامية...');
@@ -649,7 +649,7 @@ async function upload(uid,name,blob){
   if(!blob) return null;
   const path=`${uid}/${name}-${Date.now()}.jpg`;
   const {error}=await sb.storage.from(BUCKET).upload(path,blob,{upsert:true,contentType:'image/jpeg'});
-  if(error) throw new Error('فشل رفع الصورة');
+  if(error) throw new Error('فشل رفع الصورة: '+error.message);
   return path;
 }
 
