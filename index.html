@@ -345,9 +345,9 @@ label.lb{display:block;font-weight:700;font-size:14px;margin:4px 0 6px}
         <div id="veh" class="hidden">
           <label class="lb">اختار المركبة اللي معاك</label>
           <div class="vgrid">
-            <label><input type="radio" name="vehicle" value="car" checked><span class="vc"><img src="https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/5d3effa6-0026-47f0-a66a-d7550c95e73a.png " data-fb="vcar" alt=""><b>سيارة</b></span></label>
-            <label><input type="radio" name="vehicle" value="tuktuk"><span class="vc"><img src=" https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/5976cc9c-fb96-457d-a0aa-847bb1ceb6e1.png" data-fb="vtuk" alt=""><b>تيك توك</b></span></label>
-            <label><input type="radio" name="vehicle" value="motorcycle"><span class="vc"><img src=" https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/e4ee81bf-430f-4275-9534-4fbf86bb9b8f.png" data-fb="vmoto" alt=""><b>موتوسيكل</b></span></label>
+            <label><input type="radio" name="vehicle" value="car" checked><span class="vc"><img src=" https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/5d3effa6-0026-47f0-a66a-d7550c95e73a.png" data-fb="vcar" alt=""><b>سيارة</b></span></label>
+            <label><input type="radio" name="vehicle" value="tuktuk"><span class="vc"><img src="https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/5976cc9c-fb96-457d-a0aa-847bb1ceb6e1.png " data-fb="vtuk" alt=""><b>توك توك</b></span></label>
+            <label><input type="radio" name="vehicle" value="motorcycle"><span class="vc"><img src="https://i.supaimg.com/965e0c3e-50d9-4ba0-97dc-487d00fde583/e4ee81bf-430f-4275-9534-4fbf86bb9b8f.png" data-fb="vmoto" alt=""><b>موتوسيكل</b></span></label>
           </div>
         </div>
         <label style="display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0 12px;cursor:pointer">
@@ -533,6 +533,14 @@ function setMode(oa){
   $('#prov').classList.toggle('hidden',!oa);
   if(!oa){ oauthUser=null; nameHint(); }
 }
+function authMsg(m){
+  m=String(m||'');
+  if(/signups? (not allowed|.*disabled)|provider is not enabled|email.*disabled/i.test(m)) return 'التسجيل بالإيميل مقفول. فعّل Email من Supabase: Authentication > Sign In / Providers';
+  if(/rate limit|too many|security purposes/i.test(m)) return 'محاولات كتير، استنى دقيقة وجرب تاني';
+  if(/password/i.test(m)) return 'كلمة المرور مرفوضة: '+m;
+  if(/invalid/i.test(m)&&/email/i.test(m)) return 'Supabase رفض الإيميل الداخلي: '+m;
+  return 'تعذر إنشاء الحساب: '+m;
+}
 const homeOf=r=>r==='driver'?'driver.html':'client.html';
 async function routeSession(session){
   if(!session||routed||routeHold) return;
@@ -592,13 +600,20 @@ $('#s-submit').onclick=async()=>{
     LD.show('جاري إنشاء حسابك...');
     let user,email;
     if(oauthUser){ /* دخل بجوجل/فيس: نضيف له كلمة مرور */
-      const {error}=await sb.auth.updateUser({password:pass}); if(error) throw new Error('تعذر حفظ كلمة المرور');
+      const {error}=await sb.auth.updateUser({password:pass}); if(error) throw new Error('تعذر حفظ كلمة المرور: '+error.message);
       if(!oauthUser.email) throw new Error('حسابك مفيهوش إيميل، فعّل صلاحية الإيميل في الحساب وسجّل تاني');
       user=oauthUser; email=oauthUser.email;
     }else{
       email=`${nid}@${EMAIL_DOMAIN}`;
-      const {data,error}=await sb.auth.signUp({email,password:pass});
-      if(error) throw new Error(/registered/i.test(error.message)?'الرقم القومي مسجل بالفعل':'تعذر إنشاء الحساب');
+      let {data,error}=await sb.auth.signUp({email,password:pass});
+      if(error&&/already|registered/i.test(error.message)){   /* محاولة سابقة وقفت في النص: كمّل عليها */
+        const r=await sb.auth.signInWithPassword({email,password:pass});
+        if(r.error) throw new Error('الرقم القومي مسجل بالفعل');
+        const {data:ex}=await sb.from('profiles').select('national_id').eq('id',r.data.user.id).maybeSingle();
+        if(ex&&ex.national_id){ await sb.auth.signOut(); throw new Error('الرقم القومي مسجل بالفعل'); }
+        data=r.data; error=null;
+      }
+      if(error) throw new Error(authMsg(error.message));
       if(!data.session) throw new Error('فعّل تسجيل بدون تأكيد الإيميل من إعدادات Supabase');
       user=data.user;
     }
@@ -780,7 +795,7 @@ async function upload(uid,name,blob){
   if(!blob) return null;
   const path=`${uid}/${name}-${Date.now()}.jpg`;
   const {error}=await sb.storage.from(BUCKET).upload(path,blob,{upsert:true,contentType:'image/jpeg'});
-  if(error) throw new Error('فشل رفع الصورة');
+  if(error) throw new Error('فشل رفع الصورة: '+error.message);
   return path;
 }
 
