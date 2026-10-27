@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#0f2a5c">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RideNow | السائق</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--blue:#1a6fe0;--green:#1a8f4c;--navy:#0f2a5c;--ink:#16213a;--mut:#6b7690;--line:#d9e0ec;--field:#f3f6fb;--err:#d63838;--warn:#b7791f}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:"Cairo",system-ui,sans-serif;color:var(--ink);background:#e8edf5;direction:rtl}
+#map{position:fixed;inset:0;z-index:0}
+.leaflet-top{top:70px!important}.leaflet-control-attribution{font-size:9px!important}
+.top{position:fixed;top:0;left:0;right:0;z-index:20;padding:calc(10px + env(safe-area-inset-top)) 12px 0;display:flex;gap:10px;pointer-events:none;max-width:640px;margin:0 auto}
+.top>*{pointer-events:auto}
+.bk{width:48px;height:48px;border:0;border-radius:50%;background:#fff;box-shadow:0 2px 12px rgba(15,42,92,.22);color:var(--navy);cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center}
+.bk svg{width:22px;height:22px}
+.chip{flex:1;height:48px;background:#fff;border-radius:99px;box-shadow:0 2px 12px rgba(15,42,92,.22);display:flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:700;font-size:14px;color:var(--navy);cursor:pointer;border:0}
+.chip .dot{width:10px;height:10px;border-radius:50%;background:#bbb;transition:.2s}
+.chip .dot.on{background:var(--green);box-shadow:0 0 0 3px rgba(26,143,76,.2)}
+.pin{position:relative;width:34px;height:34px;border-radius:50%;border:3px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.pin::after{content:"";position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--c);border-bottom:0}
+.pin.a{background:var(--blue);--c:var(--blue)}.pin.b{background:var(--green);--c:var(--green)}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:30;height:42vh;min-height:290px;max-height:60vh;background:#fff;border-radius:26px 26px 0 0;box-shadow:0 -8px 30px rgba(15,42,92,.28);padding:8px 16px calc(14px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden}
+.grab{width:42px;height:4px;border-radius:9px;background:var(--line);margin:0 auto 10px;flex:none}
+.sheet-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.head{font-size:15px;font-weight:800;color:var(--navy);margin:4px 0 12px;display:flex;align-items:center;justify-content:space-between}
+.head .count{font-size:12px;background:#eaf1fc;color:var(--blue);padding:3px 9px;border-radius:99px;font-weight:700}
+.rcard{border:1.5px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;background:#fff;transition:.15s;cursor:pointer}
+.rcard.sel{border-color:var(--blue);background:#f6f9ff}
+.rc-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.av{width:46px;height:46px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex:none;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.rc-info{flex:1;min-width:0}
+.rc-info b{display:block;font-size:14.5px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-info small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.badge{background:#eaf1fc;color:var(--blue);padding:4px 9px;border-radius:99px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.rt-route{border:1.5px solid var(--line);border-radius:12px;padding:2px 10px;margin-bottom:8px}
+.rt-row{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:6px 0}
+.rt-row+.rt-row{border-top:1px dashed var(--line)}
+.rt-row i{width:20px;height:20px;border-radius:50%;color:#fff;font-style:normal;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none}
+.rt-row.a i{background:var(--blue)}.rt-row.b i{background:var(--green)}
+.rt-row span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-meta{display:flex;gap:14px;font-size:12.5px;color:var(--mut);font-weight:600;margin-bottom:10px;flex-wrap:wrap}
+.rc-meta b{color:var(--ink)}
+.btn{width:100%;height:46px;border:0;border-radius:12px;background:var(--blue);color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.green{background:var(--green)}
+.btn.gh{background:#fff;color:var(--mut);border:1.5px solid var(--line)}
+.btn.red{background:#fff;color:var(--err);border:1.5px solid var(--err)}
+.btn svg{width:20px;height:20px}
+.btn+.btn{margin-top:8px}
+.empty{text-align:center;padding:32px 12px;color:var(--mut);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%}
+.empty h3{color:var(--navy);font-size:17px;margin-bottom:6px}
+.empty p{font-size:13px;line-height:1.6}
+.empty .ic{width:64px;height:64px;margin:0 auto 10px;border-radius:50%;background:#eaf1fc;color:var(--blue);display:flex;align-items:center;justify-content:center}
+.empty .ic svg{width:32px;height:32px}
+.toast{position:fixed;left:50%;top:76px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:12px;font-size:13.5px;font-weight:700;z-index:60;display:none;max-width:90%}
+.banner{padding:12px 14px;border-radius:14px;font-weight:700;font-size:14px;margin-bottom:10px;background:#fff6e0;color:var(--warn)}
+.banner.error{background:#fdeaea;color:var(--err)}
+.route-box{border:1.5px solid var(--line);border-radius:14px;padding:2px 12px;margin:10px 0}
+.route-box .pt{display:flex;align-items:center;gap:10px;font-size:13px;padding:9px 0}
+.route-box .pt+.pt{border-top:1px dashed var(--line)}
+.route-box .pt i{width:24px;height:24px;border-radius:50%;color:#fff;font-style:normal;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.route-box .pt.a i{background:var(--blue)}.route-box .pt.b i{background:var(--green)}
+.route-box .pt span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.avatar-big{width:56px;height:56px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;flex:none;overflow:hidden;border:2px solid #eaf1fc}
+.avatar-big img{width:100%;height:100%;object-fit:cover;display:block}
+.pickup-tag{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:#eaf1fc;color:var(--blue)}
+.pickup-tag.b{background:#e6f5ed;color:var(--green)}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="top">
+  <button class="bk" id="back" aria-label="رجوع"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+  <button class="chip" id="chip" aria-label="الحالة"><span class="dot" id="dot"></span><span id="chipTxt">جاري...</span></button>
+</div>
+<div class="toast" id="toast"></div>
+<div class="sheet"><div class="grab"></div><div class="sheet-body" id="sheetBody"><div class="empty"><h3>جاري التحميل...</h3><p>بنجهز حسابك...</p></div></div></div>
+
+<script>
+const SUPABASE_URL = "https://odjlhzojqsrbqffehukm.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_yRm2rQvgy0NK_CIqoqtYdw_LBve2iAU";
+const LOGIN_PAGE = "index.html";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const $ = (s,r=document)=>r.querySelector(s);
+const esc = t => String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const IC = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+
+const VNAME = {car:'سيارة', tuktuk:'تيك توك', motorcycle:'موتوسيكل'};
+const TNAME = {solo:'سفر لوحدك', family:'معاك أسرتك', friends:'مع أصحابك', order:'ترسل أوردر'};
+
+const PHONE = IC('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>');
+const CHECK = IC('<path d="M20 6L9 17l-5-5"/>');
+const X = IC('<path d="M18 6L6 18M6 6l12 12"/>');
+const NAV = IC('<path d="M12 2L4 22l8-6 8 6-8-20z"/>');
+const PIN = IC('<circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.5-7-11a7 7 0 0114 0c0 4.5-7 11-7 11z"/>');
+
+let U = null, P = null;
+let map, layer, mk = {}, routeLine = null, driverPos = null;
+let availableRides = [], activeRide = null, online = false;
+let pollTimer = null, activeTimer = null;
+let pickedUp = false;
+
+const sheetBody = h => { $('#sheetBody').innerHTML = h; };
+const toast = t => { const e = $('#toast'); e.textContent = t; e.style.display='block'; clearTimeout(toast.t); toast.t = setTimeout(()=>e.style.display='none', 3200); };
+const pin = (c,l) => L.divIcon({className:'', html:`<div class="pin ${c}">${l}</div>`, iconSize:[34,44], iconAnchor:[17,44]});
+const initial = n => (String(n||'؟').trim().charAt(0) || '؟');
+const fmtKm = v => v==null||isNaN(+v) ? '—' : (+v).toFixed(1) + ' كم';
+const fmtMin = v => v==null||isNaN(+v) ? '—' : Math.round(+v) + ' دقيقة';
+
+// أفاتار العميل مع fallback
+const avatarHtml = (r, cls='av') => {
+  const init = initial(r.client_name);
+  if (r.client_avatar) {
+    return `<div class="${cls}" data-init="${esc(init)}"><img src="${esc(r.client_avatar)}" alt=""></div>`;
+  }
+  return `<div class="${cls}">${esc(init)}</div>`;
+};
+// fallback لو الصورة فشلت
+document.addEventListener('error', e => {
+  const img = e.target;
+  if (img.tagName==='IMG' && img.parentElement?.dataset?.init != null) {
+    img.parentElement.textContent = img.parentElement.dataset.init || '؟';
+  }
+}, true);
+
+/* ============ الخريطة ============ */
+function initMap(){
+  map = L.map('map', {zoomControl:false, attributionControl:false}).setView([30.05, 31.24], 11);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+  L.control.attribution({position:'topright', prefix:false}).addTo(map);
+  layer = L.layerGroup().addTo(map);
+}
+function clearMap(){
+  layer.clearLayers();
+  mk = {};
+  if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+}
+async function drawRide(ride, fit=true){
+  clearMap();
+  const a = {lat:+ride.pickup_lat, lng:+ride.pickup_lng};
+  const b = {lat:+ride.dropoff_lat, lng:+ride.dropoff_lng};
+  mk.A = L.marker([a.lat, a.lng], {icon:pin('a','A')}).addTo(layer);
+  mk.B = L.marker([b.lat, b.lng], {icon:pin('b','B')}).addTo(layer);
+
+  let pts = [[a.lat,a.lng],[b.lat,b.lng]];
+  try{
+    const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`);
+    const j = await r.json();
+    if (j.routes && j.routes[0]) pts = j.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+  }catch(e){}
+  routeLine = L.polyline(pts, {color:'#1a6fe0', weight:6, opacity:.95, lineCap:'round'}).addTo(map);
+
+  if (fit) {
+    const sheetH = $('#sheetBody').offsetHeight || 300;
+    map.fitBounds(L.latLngBounds(pts), {paddingTopLeft:[30,90], paddingBottomRight:[30, sheetH+30], maxZoom:16});
+  }
+}
+function fitToRides(rides){
+  if (!rides.length) return;
+  const bounds = L.latLngBounds([]);
+  rides.forEach(r=>{
+    bounds.extend([+r.pickup_lat, +r.pickup_lng]);
+    bounds.extend([+r.dropoff_lat, +r.dropoff_lng]);
+  });
+  const sheetH = $('#sheetBody').offsetHeight || 300;
+  map.fitBounds(bounds, {paddingTopLeft:[30,90], paddingBottomRight:[30, sheetH+30], maxZoom:14});
+}
+
+/* ============ عرض القائمة ============ */
+function renderList(){
+  if (activeRide) return showActive();
+  if (!online) {
+    sheetBody(`<div class="empty"><div class="ic">${PIN}</div><h3>أنت غير متصل</h3><p>اضغط على "اتصل" فوق عشان تستقبل رحلات جديدة</p></div>`);
+    updateChip();
+    return;
+  }
+  if (!availableRides.length) {
+    sheetBody(`<div class="empty"><div class="ic">${PIN}</div><h3>مفيش رحلات دلوقتي</h3><p>بندور على رحلات قريبة منك، استنى شوية...</p></div>`);
+    updateChip();
+    return;
+  }
+  sheetBody(`
+    <div class="head">رحلات متاحة <span class="count">${availableRides.length}</span></div>
+    ${availableRides.map(cardHtml).join('')}
+  `);
+  updateChip();
+}
+function cardHtml(r){
+  return `<div class="rcard" data-id="${esc(r.id)}">
+    <div class="rc-top">
+      ${avatarHtml(r,'av')}
+      <div class="rc-info">
+        <b>${esc(r.client_name||'عميل')}</b>
+        <small>${esc(TNAME[r.trip_type]||'رحلة')} · ${esc(VNAME[r.vehicle_type]||'')}</small>
+      </div>
+      <span class="badge">${esc(VNAME[r.vehicle_type]||'')}</span>
+    </div>
+    <div class="rt-route">
+      <div class="rt-row a"><i>A</i><span>${esc(r.pickup_text||'نقطة الانطلاق')}</span></div>
+      <div class="rt-row b"><i>B</i><span>${esc(r.dropoff_text||'الوجهة')}</span></div>
+    </div>
+    <div class="rc-meta">
+      <span>المسافة <b>${fmtKm(r.distance_km)}</b></span>
+      <span>الوقت <b>${fmtMin(r.duration_min)}</b></span>
+    </div>
+    <button class="btn" data-accept="${esc(r.id)}">${CHECK}قبول الرحلة</button>
+  </div>`;
+}
+
+/* ============ عرض الرحلة النشطة ============ */
+async function showActive(){
+  const r = activeRide;
+  if (!r) { renderList(); return; }
+
+  // هات رقم العميل من profiles (لو مش موجود)
+  let phone = r.client_phone || null;
+  if (!phone && r.client_id) {
+    try{
+      const {data:cp} = await sb.from('profiles').select('*').eq('id', r.client_id).maybeSingle();
+      phone = cp?.phone || cp?.mobile || cp?.phone_number || null;
+      if (phone) r.client_phone = phone;
+    }catch(e){}
+  }
+
+  const targetLat = pickedUp ? r.dropoff_lat : r.pickup_lat;
+  const targetLng = pickedUp ? r.dropoff_lng : r.pickup_lng;
+  const dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${targetLat},${targetLng}&travelmode=driving`;
+
+  sheetBody(`
+    <div class="head">
+      <span>رحلة جارية ${pickedUp?'· في الطريق':''}</span>
+      <span class="pickup-tag ${pickedUp?'b':''}">
+        ${pickedUp ? 'B · الوجهة' : 'A · الانطلاق'}
+      </span>
+    </div>
+    <div class="rc-top" style="margin-bottom:12px">
+      ${avatarHtml(r,'avatar-big')}
+      <div class="rc-info">
+        <b style="font-size:16px">${esc(r.client_name||'عميل')}</b>
+        <small>${esc(TNAME[r.trip_type]||'')} · ${esc(VNAME[r.vehicle_type]||'')}</small>
+      </div>
+    </div>
+    <div class="route-box">
+      <div class="pt a"><i>A</i><span>${esc(r.pickup_text||'')}</span></div>
+      <div class="pt b"><i>B</i><span>${esc(r.dropoff_text||'')}</span></div>
+    </div>
+    <div class="rc-meta">
+      <span>المسافة <b>${fmtKm(r.distance_km)}</b></span>
+      <span>الوقت <b>${fmtMin(r.duration_min)}</b></span>
+    </div>
+    ${phone
+      ? `<a class="btn green" href="tel:${esc(phone)}">${PHONE}اتصل بالعميل</a>`
+      : `<button class="btn gh" disabled>${PHONE}رقم العميل غير متاح</button>`}
+    <a class="btn gh" target="_blank" rel="noopener" href="${dirUrl}">${NAV}${pickedUp?'الاتجاهات للوجهة':'الاتجاهات للعميل'}</a>
+    ${pickedUp
+      ? `<button class="btn" data-complete>${CHECK}وصلت الوجهة</button>`
+      : `<button class="btn" data-arrived>${CHECK}وصلت للعميل / بدأت الرحلة</button>`}
+    <button class="btn red" data-cancel-active>${X}إلغاء الرحلة</button>
+  `);
+  updateChip();
+}
+
+function updateChip(){
+  const dot = $('#dot'), txt = $('#chipTxt');
+  if (activeRide) {
+    dot.classList.add('on');
+    txt.textContent = 'في رحلة';
+    return;
+  }
+  dot.classList.toggle('on', online);
+  if (!online) txt.textContent = 'غير متصل';
+  else if (availableRides.length) txt.textContent = `متصل · ${availableRides.length} رحلة`;
+  else txt.textContent = 'متصل';
+}
+
+/* ============ قبول / إكمال / إلغاء ============ */
+async function acceptRide(ride, btn){
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'جاري القبول...';
+  const {data, error} = await sb.from('rides').update({
+    driver_id: U.id,
+    driver_name: P.full_name,
+    driver_phone: P.phone || null,
+    driver_vehicle: P.vehicle_type || ride.vehicle_type,
+    status: 'accepted'
+  }).eq('id', ride.id).eq('status','requested').select().maybeSingle();
+
+  if (error) { toast('تعذر القبول: ' + error.message); btn.disabled = false; btn.innerHTML = orig; return; }
+  if (!data)  { toast('الرحلة اتمسكت من سائق تاني'); refresh(); return; }
+
+  activeRide = data;
+  pickedUp = false;
+  if (navigator.vibrate) navigator.vibrate(200);
+  startActiveTracking();
+  await showActive();
+  await drawRide(data);
+}
+
+async function completeRide(){
+  if (!activeRide) return;
+  if (!confirm('وصلت العميل للوجهة؟')) return;
+  const {error} = await sb.from('rides').update({status:'completed'}).eq('id', activeRide.id);
+  if (error) { toast('تعذر إكمال الرحلة: ' + error.message); return; }
+  toast('تم إكمال الرحلة ✓');
+  activeRide = null;
+  pickedUp = false;
+  stopActiveTracking();
+  clearMap();
+  await refresh();
+}
+
+async function cancelActiveRide(){
+  if (!activeRide) return;
+  if (!confirm('متأكد إنك عايز تلغي الرحلة؟')) return;
+  const {error} = await sb.from('rides').update({status:'cancelled'}).eq('id', activeRide.id);
+  if (error) { toast('تعذر الإلغاء: ' + error.message); return; }
+  toast('تم إلغاء الرحلة');
+  activeRide = null;
+  pickedUp = false;
+  stopActiveTracking();
+  clearMap();
+  await refresh();
+}
+
+/* ============ Polling ============ */
+async function refresh(){
+  if (!P || P.status !== 'approved') return;
+  if (activeRide || !online) return;
+  const hadRides = availableRides.length > 0;
+  const {data, error} = await sb.from('rides')
+    .select('*')
+    .eq('status','requested')
+    .order('created_at', {ascending:false})
+    .limit(25);
+  if (error) { console.warn(error); return; }
+  availableRides = data || [];
+  renderList();
+  if (!hadRides && availableRides.length) fitToRides(availableRides);
+  else if (hadRides && availableRides.length) updateChip();
+}
+function startPolling(){
+  stopPolling();
+  if (!online) return;
+  pollTimer = setInterval(refresh, 6000);
+}
+function stopPolling(){ clearInterval(pollTimer); pollTimer = null; }
+
+function startActiveTracking(){
+  stopActiveTracking();
+  activeTimer = setInterval(async () => {
+    if (!activeRide) return;
+    const {data} = await sb.from('rides').select('*').eq('id', activeRide.id).maybeSingle();
+    if (!data) return;
+    if (data.status === 'cancelled') {
+      toast('العميل ألغى الرحلة');
+      activeRide = null;
+      pickedUp = false;
+      stopActiveTracking();
+      clearMap();
+      await refresh();
+    } else {
+      activeRide = data;
+    }
+  }, 6000);
+}
+function stopActiveTracking(){ clearInterval(activeTimer); activeTimer = null; }
+
+/* ============ الأحداث ============ */
+$('#back').onclick = () => history.length > 1 ? history.back() : location.replace('client.html');
+
+$('#chip').onclick = () => {
+  if (activeRide) return;
+  online = !online;
+  if (online) { toast('انت متصل دلوقتي، بندور على رحلات...'); refresh(); startPolling(); }
+  else { toast('انت غير متصل'); stopPolling(); renderList(); }
+  updateChip();
+};
+
+$('#sheetBody').addEventListener('click', async e => {
+  const ac = e.target.closest('[data-accept]');
+  if (ac) {
+    e.stopPropagation();
+    const ride = availableRides.find(x => x.id === ac.dataset.accept);
+    if (ride) await acceptRide(ride, ac);
+    return;
+  }
+  const card = e.target.closest('.rcard');
+  if (card && !activeRide) {
+    const ride = availableRides.find(x => x.id === card.dataset.id);
+    if (ride) {
+      document.querySelectorAll('.rcard').forEach(c=>c.classList.remove('sel'));
+      card.classList.add('sel');
+      await drawRide(ride);
+    }
+    return;
+  }
+  if (e.target.closest('[data-arrived]')) {
+    pickedUp = true;
+    toast('يلا نروح للوجهة 🚗');
+    await showActive();
+    if (activeRide) await drawRide(activeRide);
+    return;
+  }
+  if (e.target.closest('[data-complete]')) { await completeRide(); return; }
+  if (e.target.closest('[data-cancel-active]')) { await cancelActiveRide(); return; }
+});
+
+/* ============ التهيئة ============ */
+(async () => {
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    if (!session) return location.replace(LOGIN_PAGE);
+    U = session.user;
+
+    const {data:p, error} = await sb.from('profiles').select('*').eq('id', U.id).maybeSingle();
+    if (error) throw new Error('تعذر قراءة بياناتك: ' + error.message);
+    if (!p) return location.replace('complete.html');
+    if (p.role !== 'driver') return location.replace('client.html');
+    P = p;
+
+    initMap();
+
+    if (P.status !== 'approved') {
+      sheetBody(`<div class="banner">حسابك قيد المراجعة. هتقدر تستقبل رحلات بعد الموافقة</div>`);
+      updateChip();
+      return;
+    }
+
+    // موقع السائق الحالي
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        driverPos = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+        if (!availableRides.length && !activeRide) map.setView([driverPos.lat, driverPos.lng], 14);
+      }, () => {}, {enableHighAccuracy:true, timeout:10000});
+    }
+
+    // هل في رحلة شغالة أصلاً؟
+    const {data:act} = await sb.from('rides').select('*')
+      .eq('driver_id', U.id).eq('status','accepted')
+      .order('created_at', {ascending:false}).limit(1);
+
+    if (act && act[0]) {
+      activeRide = act[0];
+      pickedUp = false;
+      await drawRide(activeRide);
+      await showActive();
+      startActiveTracking();
+    } else {
+      online = true;
+      await refresh();
+      startPolling();
+    }
+  }catch(e){
+    sheetBody(`<div class="banner error">${esc(e.message)}</div>`);
+    updateChip();
+  }
+})();
+</script>
+</body>
+  </html>
