@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#0f2a5c">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RideNow | العميل</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--blue:#1a6fe0;--blue-d:#1257b8;--navy:#0f2a5c;--ink:#16213a;--mut:#6b7690;--line:#d9e0ec;--field:#f3f6fb;--ok:#1a8f4c;--err:#d63838;--warn:#b7791f}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"Cairo",system-ui,sans-serif;color:var(--ink);background:#fff;direction:rtl}
+.hd{position:sticky;top:0;z-index:40;background:var(--navy);border-radius:0 0 26px 26px;padding:calc(14px + env(safe-area-inset-top)) 18px 20px}
+.hd-in{display:flex;align-items:center;gap:12px;max-width:640px;margin:0 auto}
+.av{width:56px;height:56px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;overflow:hidden;flex:none;border:3px solid rgba(255,255,255,.3)}
+.av img{width:100%;height:100%;object-fit:cover}
+.hd-t{flex:1;min-width:0}
+.hd-t b{display:block;font-size:18px;font-weight:800;color:#fff;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd-t small{color:#b9c6e4;font-size:13px}
+.out{border:0;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-weight:700;font-size:13px;padding:9px 14px;border-radius:12px;cursor:pointer;flex:none}
+.body{width:100%;max-width:640px;margin:0 auto;padding:20px 18px 40px}
+.banner{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;font-weight:700;font-size:14px;margin-bottom:20px}
+.banner.pending{background:#fff6e0;color:var(--warn)}
+.banner.approved{background:#e6f6ec;color:var(--ok)}
+.banner.rejected{background:#fdeaea;color:var(--err)}
+.banner.error{background:#fdeaea;color:var(--err)}
+.banner svg{width:22px;height:22px;flex:none}
+h3{font-size:17px;font-weight:800;color:var(--navy);margin:6px 0 12px;display:flex;align-items:center;justify-content:space-between}
+h3 button{border:1.5px solid var(--line);background:#fff;color:var(--blue);font:inherit;font-weight:700;font-size:13px;padding:6px 12px;border-radius:10px;cursor:pointer}
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+.vgrid label{cursor:pointer;position:relative}
+.vgrid input{position:absolute;opacity:0;pointer-events:none}
+.vc{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:118px;padding:10px 6px;border:1.5px solid var(--line);border-radius:16px;background:#fff;font-weight:700;font-size:13.5px;color:var(--mut);transition:background .15s,color .15s,border-color .15s}
+.vc img{width:72px;height:59px;object-fit:contain}
+.vc .vi{display:flex;width:72px;height:59px;align-items:center;justify-content:center}
+.vc .vi svg{width:62px;height:42px}
+.vgrid input:checked+.vc{background:var(--blue);border-color:var(--blue);color:#fff}
+.list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+.drv{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px}
+.drv .av{width:46px;height:46px;font-size:18px;border:0}
+.drv .pi{flex:1;min-width:0}
+.drv .pi b{display:block;font-size:15.5px;color:var(--navy)}
+.drv .pi small{color:var(--mut);font-size:12.5px}
+.tag{font-size:12px;font-weight:700;color:var(--blue);background:#e8f0ff;border-radius:99px;padding:5px 12px;flex:none}
+.empty{text-align:center;color:var(--mut);font-size:14px;padding:26px 10px;border:1.5px dashed var(--line);border-radius:16px;margin-bottom:22px}
+.info{border:1.5px solid var(--line);border-radius:16px;overflow:hidden}
+.info div{display:flex;justify-content:space-between;gap:12px;padding:13px 14px;font-size:14px}
+.info div+div{border-top:1px solid var(--line)}
+.info span{color:var(--mut)} .info b{font-weight:700;text-align:left;direction:ltr;unicode-bidi:plaintext}
+.req{display:flex;align-items:center;justify-content:center;height:54px;border-radius:16px;background:var(--blue);color:#fff;font-weight:800;font-size:18px;text-decoration:none;margin-bottom:22px;box-shadow:0 6px 18px rgba(26,111,224,.35)}
+</style>
+</head>
+<body>
+<header class="hd">
+  <div class="hd-in">
+    <div class="av" id="av"></div>
+    <div class="hd-t"><b id="nm">...</b><small>عميل</small></div>
+    <button class="out" id="out">خروج</button>
+  </div>
+</header>
+<main class="body">
+  <div class="banner" id="st"></div>
+  <a class="req" href="request.html">اطلب رحلة الآن</a>
+
+  <h3>اختر نوع المركبة</h3>
+  <div class="vgrid" id="vg">
+    <label><input type="radio" name="v" value="car" checked><span class="vc"><img src="taxi.png" alt=""><b>سيارة</b></span></label>
+    <label><input type="radio" name="v" value="tuktuk"><span class="vc"><img src="tuktuk.png" data-fb="tuk" alt=""><b>تيك توك</b></span></label>
+    <label><input type="radio" name="v" value="motorcycle"><span class="vc"><img src="motorcycle.png" data-fb="moto" alt=""><b>موتوسيكل</b></span></label>
+  </div>
+
+  <h3>السائقين المتاحين <button id="rf" type="button">تحديث</button></h3>
+  <div class="list" id="drv"></div>
+
+  <h3>بياناتك</h3>
+  <div class="info" id="info"></div>
+</main>
+
+<script src="loader.js"></script>
+<script>
+const SUPABASE_URL = "https://odjlhzojqsrbqffehukm.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_yRm2rQvgy0NK_CIqoqtYdw_LBve2iAU";
+const BUCKET = "id-cards", LOGIN_PAGE = "index.html";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = (s,r=document)=>r.querySelector(s);
+const V = p => `<svg viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const FB={tuk:V('<path d="M8 6h26l6 9v9h-3M8 6v18h2M18 24h12M8 15h32M21 6v9"/><circle cx="14" cy="25" r="4.5"/><circle cx="34" cy="25" r="4.5"/>'),
+  moto:V('<circle cx="9" cy="23" r="5.5"/><circle cx="39" cy="23" r="5.5"/><path d="M9 23l8-9h10l6 9M17 14l-3-5h-5M27 14l4-7h5M20 14l4 9h9"/>')};
+document.querySelectorAll('img[data-fb]').forEach(im=>{ const fix=()=>{ if(!im.isConnected) return; const d=document.createElement('span'); d.className='vi'; d.innerHTML=FB[im.dataset.fb]; im.replaceWith(d); }; if(im.complete&&!im.naturalWidth) fix(); else im.addEventListener('error',fix,{once:true}); });
+const VNAME={car:'سيارة',tuktuk:'تيك توك',motorcycle:'موتوسيكل'};
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const IC={clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+          ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.500l3 3 5-6"/></svg>',
+          x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>'};
+let drivers=[];
+
+function renderDrivers(){
+  const v=document.querySelector('input[name=v]:checked').value;
+  const l=drivers.filter(d=>d.vehicle_type===v), box=$('#drv');
+  if(!l.length){ box.className=''; box.innerHTML=`<div class="empty">مفيش ${VNAME[v]} متاحة دلوقتي</div>`; return; }
+  box.className='list';
+  box.innerHTML=l.map(d=>`<div class="drv"><div class="av">${esc((d.first_name||'؟')[0])}</div><div class="pi"><b>${esc(d.first_name)}</b><small>${esc([d.city,d.governorate].filter(Boolean).join('، '))}</small></div><span class="tag">${VNAME[d.vehicle_type]||''}</span></div>`).join('');
+}
+async function loadDrivers(){
+  const {data,error}=await sb.rpc('get_drivers');
+  if(error) throw new Error('تعذر تحميل السائقين: '+error.message+' (شغّل الـ SQL)');
+  drivers=data||[]; renderDrivers();
+}
+document.querySelectorAll('input[name=v]').forEach(r=>r.addEventListener('change',renderDrivers));
+$('#rf').onclick=async()=>{ const b=$('#rf'); b.disabled=true; b.textContent='...'; try{ await loadDrivers(); }catch(e){ $('#drv').innerHTML=`<div class="empty">${esc(e.message)}</div>`; } b.disabled=false; b.textContent='تحديث'; };
+$('#out').onclick=async()=>{ await sb.auth.signOut(); location.replace(LOGIN_PAGE); };
+
+(async()=>{
+  const T=4; let dn=0; const tick=l=>{ dn++; LD.set(dn/T,l); };
+  LD.show('جاري التحقق من حسابك...');
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session) return location.replace(LOGIN_PAGE);
+    tick('جاري تحميل بياناتك...');
+    const {data:p,error}=await sb.from('profiles').select('full_name,role,phone,governorate,city,status,national_id,selfie_center').eq('id',session.user.id).maybeSingle();
+    if(error) throw new Error('تعذر قراءة بياناتك: '+error.message);
+    if(!p||!p.national_id) return location.replace('complete.html');
+    if(p.role==='driver') return location.replace('driver.html');
+    tick('جاري تحميل صورتك...');
+    let photo=null;
+    if(p.selfie_center){ const {data}=await sb.storage.from(BUCKET).createSignedUrl(p.selfie_center,3600); photo=data&&data.signedUrl; }
+    tick('جاري تحميل السائقين المتاحين...');
+    $('#nm').textContent=p.full_name||'';
+    $('#av').innerHTML=photo?`<img src="${photo}" alt="">`:esc((p.full_name||'؟')[0]);
+    const st=$('#st'), S={pending:['pending',IC.clock,'حسابك قيد مراجعة الهوية'],approved:['approved',IC.ok,'تم توثيق حسابك'],rejected:['rejected',IC.x,'تم رفض طلب التوثيق، تواصل مع الدعم']}[p.status]||['pending',IC.clock,'حسابك قيد المراجعة'];
+    st.className='banner '+S[0]; st.innerHTML=S[1]+'<span>'+S[2]+'</span>';
+    $('#info').innerHTML=[['الاسم',p.full_name],['الهاتف',p.phone],['المحافظة',p.governorate],['المدينة',p.city]].map(([a,b])=>`<div><span>${a}</span><b>${esc(b)}</b></div>`).join('');
+    try{ await loadDrivers(); }catch(e){ $('#drv').innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
+    tick('تم');
+    await new Promise(r=>setTimeout(r,450));
+  }catch(e){
+    const st=$('#st'); st.className='banner error'; st.textContent=e.message;
+  }
+  LD.hide();
+})();
+</script>
+</body>
+</html>
